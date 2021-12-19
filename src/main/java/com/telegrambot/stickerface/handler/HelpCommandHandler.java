@@ -7,9 +7,10 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 @Component
 public class HelpCommandHandler extends AbstractHandler {
 
-    private static final String HELP_REPLY_MESSAGE = "Type \"/start\" to start bot. \n" +
-            "Type \"/register <<community_url>>\" to register VK comminity to poll photos. \n" +
-            "After registration type \"/poll\" to start polling posts.\n" +
+    private static final String HELP_REPLY_MESSAGE =
+            "Type \"/login\" to login to your VK account. This you have to do to register group to poll posts. \n" +
+            "Type \"/register <<community_url>>\" to register VK comminity to poll posts. \n" +
+            "After registration type \"/poll\" to start polling posts.\n\n" +
             "Type \"/status\" to see what VK community is mirrored. \n" +
             "Type \"/info\" to see information about developer and contacts. \n" +
             "Type \"/stop\" if you want to stop this bot. \n";

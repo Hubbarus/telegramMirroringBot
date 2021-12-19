@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript">
+        function sendToServerHashData() {
+            var hash = window.location.hash.substr(1);
+
+            var result = hash.split('&').reduce(function (res, item) {
+                var parts = item.split('=');
+                res[parts[0]] = parts[1];
+                return res;
+            }, {});
+
+            var xhr = new XMLHttpRequest();
+            var url = "http://192.168.31.160:8080/callback";
+            xhr.open("POST", url, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.send(JSON.stringify(result));
+        }
+
+        window.onload = sendToServerHashData;
+    </script>
+
+</head>
+<body>
+<div>
+    <a content="text">Login successful!</a>
+</div>
+</body>
+</html>

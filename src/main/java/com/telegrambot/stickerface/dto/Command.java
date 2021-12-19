@@ -12,6 +12,7 @@ public enum Command {
     REGISTER("/register"),
     START_POLL("/poll"),
     STOP("/stop"),
+    LOGIN("/login"),
     NOT_A_COMMAND("default");
 
     String value;

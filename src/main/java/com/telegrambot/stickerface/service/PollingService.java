@@ -1,20 +1,15 @@
 package com.telegrambot.stickerface.service;
 
-import com.telegrambot.stickerface.dto.VkMessage;
-import lombok.SneakyThrows;
+import com.vk.api.sdk.client.VkApiClient;
+import com.vk.api.sdk.client.actors.UserActor;
+import com.vk.api.sdk.objects.groups.responses.GetByIdObjectLegacyResponse;
+import com.vk.api.sdk.objects.groups.responses.GetResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -24,26 +19,22 @@ public class PollingService implements Runnable {
     private MirroringUrlService urlService;
 
     @Autowired
-    private HtmlParserService parserService;
+    private VkApiClient vkApiClient;
 
-    @Autowired
-    private RestTemplate restTemplate;
-
-    @SneakyThrows
     @Override
     public void run() {
         log.info("Requesting host...\n");
-        Connection connection = Jsoup.connect(urlService.getUrl());
-        int responseCode = connection.execute().statusCode();
-        log.info("Polled! Code: " + responseCode);
-        if (responseCode == 200) {
-            Document document = connection.get();
-            List<VkMessage> vkMessages = parserService.parseHtmlBody(document);
-            for (VkMessage message : vkMessages) {
-                urlService.getMessageQueue().add(message);
-            }
-        } else {
-            log.error("Invalid response from server: " + responseCode);
+        try {
+            UserActor actor = new UserActor(Integer.parseInt(urlService.getUserId()), urlService.getToken());
+            GetResponse execute1 = vkApiClient.groups().get(actor).execute();
+            List<GetByIdObjectLegacyResponse> execute = vkApiClient.groups().getByIdObjectLegacy(actor)
+                    .groupIds(execute1.getItems()
+                            .stream()
+                            .map(String::valueOf)
+                            .collect(Collectors.toList()))
+                    .execute();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

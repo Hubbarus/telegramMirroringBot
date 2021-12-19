@@ -1,9 +1,12 @@
 bot:
   name: VkMirroringBot
-  token: '1915762352:AAHaW2XeNZJCYuZ9P10LFJk9zKPgFurx2Qg'
+  token: "1915762352:AAHaW2XeNZJCYuZ9P10LFJk9zKPgFurx2Qg"
 
-replies:
-
+vk:
+  app-id: 8030150
+  redirect-uri: "http://192.168.31.160:8080/login.html"
+  token-url: "https://oauth.vk.com/authorize"
+  waiting-login-time: 30000
 
 logging:
   file:

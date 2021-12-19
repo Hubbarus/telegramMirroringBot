@@ -38,23 +38,6 @@ public class Bot extends TelegramLongPollingBot {
             log.info("Handler chosen: " + handler.getClass());
 
             handler.handle(chatId, update.getMessage());
-//            SendMessage sendMessage = new SendMessage();
-//            sendMessage.setChatId(String.valueOf(chatId));
-//            sendMessage.setText(text);
-//            execute(sendMessage);
-//
-//            if (update.getMessage().getPhoto() != null) {
-//                for (PhotoSize photo : update.getMessage().getPhoto()) {
-//
-//                    String fileId = photo.getFileId();
-//
-//                    GetFile getFile = new GetFile();
-//                    getFile.setFileId(fileId);
-//                    String filePath = execute(getFile).getFilePath();
-//                    File file = downloadFile(filePath, new File("./data/userDoc/" + fileId + ".jpg"));
-//                    System.out.println();
-//                }
-//            }
         } catch (TelegramApiException e) {
             log.error(String.format("Error while command processing. ChatId: %s. \n\n Exception: %s \n\n", chatId, e.getMessage()));
             e.printStackTrace();

@@ -19,17 +19,29 @@ public class MirroringUrlService {
 
     private boolean isRegistered;
 
+    private boolean isLoggedIn;
+
+    private String token;
+
+    private String userId;
+
     protected ConcurrentLinkedQueue<VkMessage> messageQueue = new ConcurrentLinkedQueue<>();
 
     public String isUrlValid(String urlToValidate) {
         return urlToValidate.matches(VALIDATION_REGEX) ? urlToValidate : null;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+    public synchronized boolean isRegistered() { return this.isRegistered; }
 
-    public synchronized void setRegistered(boolean registered) {
-        isRegistered = registered;
-    }
+    public synchronized void setRegistered(boolean isRegistered) { this.isRegistered = isRegistered; }
+
+    public synchronized boolean isLoggedIn() { return this.isLoggedIn; }
+
+    public synchronized void setLoggedId(boolean isLoggedIn) { this.isLoggedIn = isLoggedIn; }
+
+    public void setToken(String token) { this.token = token; }
+
+    public void setUserId(String userId) { this.userId = userId; }
+
+    public void setUrl(String url) { this.url = url; }
 }
