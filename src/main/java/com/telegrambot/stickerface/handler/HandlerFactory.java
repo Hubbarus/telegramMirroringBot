@@ -46,7 +46,7 @@ public class HandlerFactory {
             case STATUS:
                 return new StatusCommandHandler(bot, urlService);
             case STOP:
-                return new StopCommandHandler(urlService, bot);
+                return new StopCommandHandler(urlService, bot, scheduledExecutorService);
             default:
                 return new DefaultCommandHandler(bot);
         }

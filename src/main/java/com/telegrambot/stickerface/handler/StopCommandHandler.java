@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 
 @Component
 public class StopCommandHandler extends AbstractHandler {
@@ -18,11 +19,13 @@ public class StopCommandHandler extends AbstractHandler {
     private static final String STOP_FAIL_REPLY_MESSAGE = "Bot doing nothing right now";
 
     private final MirroringUrlService urlService;
+    private final ScheduledExecutorService executorService;
 
     @Autowired
-    public StopCommandHandler(MirroringUrlService urlService, Bot bot) {
+    public StopCommandHandler(MirroringUrlService urlService, Bot bot, ScheduledExecutorService executorService) {
         super(bot);
         this.urlService = urlService;
+        this.executorService = executorService;
     }
 
     @Override
@@ -32,6 +35,7 @@ public class StopCommandHandler extends AbstractHandler {
         if (user.isRegistered()) {
             user.setRegistered(false);
             user.setUrl(null);
+            executorService.shutdown();
             urlService.saveBotUser(user);
             return Collections.singletonList(bot.execute(getDefaultMessage(chatId, STOP_SUCCESS_REPLY_MESSAGE, "")));
         } else {
