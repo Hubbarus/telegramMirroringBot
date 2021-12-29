@@ -31,6 +31,7 @@ public class StopCommandHandler extends AbstractHandler {
         BotUser user = urlService.getBotUserByChatId(chatId);
         if (user.isRegistered()) {
             user.setRegistered(false);
+            user.setUrl(null);
             urlService.saveBotUser(user);
             return Collections.singletonList(bot.execute(getDefaultMessage(chatId, STOP_SUCCESS_REPLY_MESSAGE, "")));
         } else {
