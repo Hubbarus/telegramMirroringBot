@@ -142,7 +142,7 @@ public class PollingService implements Runnable {
             photoAttachment.ifPresent(image::setPhoto);
         }
 
-        if (postText != null && (!postText.isEmpty() || !postText.isBlank())) {
+        if (postText != null && (!postText.isEmpty())) {
             if (postText.length() >= 200) {
                 log.info("Too long post, will be set to separate message.");
                 SendMessage message = new SendMessage();
@@ -167,7 +167,7 @@ public class PollingService implements Runnable {
             }
         }
 
-        if (postText != null && (!postText.isEmpty() || !postText.isBlank())) {
+        if (postText != null && (!postText.isEmpty())) {
             if (postText.length() >= 200) {
                 log.info("Too long post, will be set to separate message.");
                 SendMessage message = new SendMessage();

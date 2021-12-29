@@ -28,8 +28,8 @@ public class CallbackController {
         String token = body.getToken();
         String userId = body.getUserId();
         String chatId = body.getState();
-        if (token != null && !token.isEmpty() && !token.isBlank()
-                && userId != null && !userId.isEmpty() && !userId.isBlank()) {
+        if (token != null && !token.isEmpty()
+                && userId != null && !userId.isEmpty()) {
             synchronized (urlService) {
                 log.info("Token exists!");
                 BotUser user = urlService.getBotUserByChatId(Long.parseLong(chatId));
