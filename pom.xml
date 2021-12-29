@@ -14,7 +14,6 @@
 	<name>stickerface</name>
 	<description>App for stickers</description>
 	<properties>
-		<java.version>11</java.version>
 		<lombok.version>1.18.20</lombok.version>
 		<telegram.version>0.22</telegram.version>
 	</properties>
