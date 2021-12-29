@@ -1,14 +1,14 @@
 package com.telegrambot.stickerface.listener;
 
 import com.telegrambot.stickerface.config.BotConfig;
-import com.telegrambot.stickerface.dto.Command;
+import com.telegrambot.stickerface.dto.CommandEnum;
 import com.telegrambot.stickerface.handler.AbstractHandler;
 import com.telegrambot.stickerface.handler.DeleteMessageHandler;
+import com.telegrambot.stickerface.handler.HandlerFactory;
 import com.telegrambot.stickerface.model.BotUser;
 import com.telegrambot.stickerface.service.MirroringUrlService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -25,7 +25,7 @@ public class Bot extends TelegramLongPollingBot {
     private BotConfig botConfig;
 
     @Autowired
-    private ApplicationContext context;
+    private HandlerFactory handlerFactory;
 
     @Autowired
     private ListenerFactory factory;
@@ -51,11 +51,11 @@ public class Bot extends TelegramLongPollingBot {
 
         try {
             String inputText = listener.getInputText();
-            Command command = Command.fromString(inputText.split(" ")[0]);
+            CommandEnum command = CommandEnum.fromString(inputText.split(" ")[0]);
 
             log.info("Command: " + command);
 
-            AbstractHandler handler = getHandler(command);
+            AbstractHandler handler = handlerFactory.getHandler(command);
             log.info("Handler chosen: " + handler.getClass());
 
             List<Message> sentMessages = handler.handle(chatId, listener.getMessage());
@@ -72,11 +72,11 @@ public class Bot extends TelegramLongPollingBot {
         }
     }
 
-    private AbstractHandler getHandler(Command command) {
-        Object bean = context.getBean(command.getValue().toLowerCase().replaceAll("/", "")
-                + "CommandHandler");
-        return (AbstractHandler) bean;
-    }
+//    private AbstractHandler getHandler(CommandEnum command) {
+//        Object bean = context.getBean(command.getValue().toLowerCase().replaceAll("/", "")
+//                + "CommandHandler");
+//        return (AbstractHandler) bean;
+//    }
 
     @Override
     public String getBotUsername() {

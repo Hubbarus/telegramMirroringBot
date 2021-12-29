@@ -3,7 +3,7 @@ package com.telegrambot.stickerface.dto;
 import lombok.Getter;
 
 @Getter
-public enum Command {
+public enum CommandEnum {
     START("/start"),
     STATUS("/status"),
     HELP("/help"),
@@ -16,12 +16,12 @@ public enum Command {
 
     String value;
 
-    Command(String value) {
+    CommandEnum(String value) {
         this.value = value;
     }
 
-    public static Command fromString(String value) {
-        for (Command command : Command.values()) {
+    public static CommandEnum fromString(String value) {
+        for (CommandEnum command : CommandEnum.values()) {
             if (command.value.equals(value)) {
                 return command;
             }

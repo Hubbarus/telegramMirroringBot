@@ -26,7 +26,7 @@ vk:
   app-id: 8030150
   redirect-uri: "http://192.168.31.160:8080/login.html"
   token-url: "https://oauth.vk.com/authorize"
-  waiting-login-time: 30000
+  waiting-login-time: 60000
 
 logging:
   file:

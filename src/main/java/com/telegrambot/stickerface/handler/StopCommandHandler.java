@@ -1,5 +1,6 @@
 package com.telegrambot.stickerface.handler;
 
+import com.telegrambot.stickerface.listener.Bot;
 import com.telegrambot.stickerface.model.BotUser;
 import com.telegrambot.stickerface.service.MirroringUrlService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,8 @@ public class StopCommandHandler extends AbstractHandler {
     private final MirroringUrlService urlService;
 
     @Autowired
-    public StopCommandHandler(MirroringUrlService urlService) {
+    public StopCommandHandler(MirroringUrlService urlService, Bot bot) {
+        super(bot);
         this.urlService = urlService;
     }
 

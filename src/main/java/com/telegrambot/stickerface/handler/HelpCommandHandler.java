@@ -1,5 +1,6 @@
 package com.telegrambot.stickerface.handler;
 
+import com.telegrambot.stickerface.listener.Bot;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -17,6 +18,10 @@ public class HelpCommandHandler extends AbstractHandler {
                     "Type \"/status\" to see what VK community is mirrored. \n" +
                     "Type \"/info\" to see information about developer and contacts. \n" +
                     "Type \"/stop\" if you want to stop this bot. \n";
+
+    HelpCommandHandler(Bot bot) {
+        super(bot);
+    }
 
     @Override
     public List<Message> handle(long chatId, Message message) throws TelegramApiException {

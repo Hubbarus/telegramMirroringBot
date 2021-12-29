@@ -1,8 +1,8 @@
 package com.telegrambot.stickerface.handler;
 
+import com.telegrambot.stickerface.listener.Bot;
 import com.telegrambot.stickerface.model.BotUser;
 import com.telegrambot.stickerface.service.MirroringUrlService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -18,8 +18,12 @@ public class RegisterCommandHandler extends AbstractHandler {
     private static final String REGISTER_FAIL_NOT_LOGGED_IN_REPLY_MESSAGE = "User not logged in! Please call /login first";
     private static final String REGISTER_SUCCESS_REPLY_MESSAGE = "Successfully registered community: %s";
 
-    @Autowired
-    private MirroringUrlService urlService;
+    private final MirroringUrlService urlService;
+
+    RegisterCommandHandler(Bot bot, MirroringUrlService urlService) {
+        super(bot);
+        this.urlService = urlService;
+    }
 
     @Override
     public List<Message> handle(long chatId, Message message) throws TelegramApiException {

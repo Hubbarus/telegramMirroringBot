@@ -1,5 +1,6 @@
 package com.telegrambot.stickerface.handler;
 
+import com.telegrambot.stickerface.listener.Bot;
 import com.telegrambot.stickerface.model.BotUser;
 import com.telegrambot.stickerface.service.CheckRunnableService;
 import com.telegrambot.stickerface.service.MirroringUrlService;
@@ -28,7 +29,9 @@ public class PollCommandHandler extends AbstractHandler {
     private final ScheduledExecutorService executorService;
 
     @Autowired
-    public PollCommandHandler(MirroringUrlService urlService, VkApiClient vkClient, ScheduledExecutorService executorService) {
+    public PollCommandHandler(MirroringUrlService urlService, VkApiClient vkClient,
+                              ScheduledExecutorService executorService, Bot bot) {
+        super(bot);
         this.urlService = urlService;
         this.vkClient = vkClient;
         this.executorService = executorService;

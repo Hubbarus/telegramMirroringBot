@@ -17,8 +17,12 @@ import java.util.List;
 @Component
 public abstract class AbstractHandler {
 
-    @Autowired
     protected Bot bot;
+
+    @Autowired
+    AbstractHandler(Bot bot) {
+        this.bot = bot;
+    }
 
     public abstract List<Message> handle(long chatId, Message message) throws TelegramApiException, InterruptedException;
 

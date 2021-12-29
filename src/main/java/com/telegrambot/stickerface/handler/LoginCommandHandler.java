@@ -1,6 +1,7 @@
 package com.telegrambot.stickerface.handler;
 
 import com.telegrambot.stickerface.config.VkClientConfig;
+import com.telegrambot.stickerface.listener.Bot;
 import com.telegrambot.stickerface.model.BotUser;
 import com.telegrambot.stickerface.service.MirroringUrlService;
 import lombok.extern.log4j.Log4j2;
@@ -26,7 +27,8 @@ public class LoginCommandHandler extends AbstractHandler {
     private final MirroringUrlService urlService;
 
     @Autowired
-    public LoginCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService) {
+    public LoginCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, Bot bot) {
+        super(bot);
         this.vkClientConfig = vkClientConfig;
         this.urlService = urlService;
     }
@@ -49,7 +51,7 @@ public class LoginCommandHandler extends AbstractHandler {
                         .toUriString();
 
                 sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_REPLY_MESSAGE, "")));
-                sentMessages.add(bot.execute(getDefaultMessage(chatId, urlTemplate, "")));
+                Message urlMessage = bot.execute(getDefaultMessage(chatId, urlTemplate, ""));
 
                 try {
                     urlService.wait(vkClientConfig.getWaitingLoginTime());
@@ -65,6 +67,7 @@ public class LoginCommandHandler extends AbstractHandler {
                 } else {
                     sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_FAILED_REPLY_MESSAGE, "Maximum waiting time exceeded!")));
                 }
+                deleteOwnMessage(chatId, urlMessage);
             } else {
                 sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_SUCCESSFUL_REPLY_MESSAGE, "Already logged in!")));
             }
