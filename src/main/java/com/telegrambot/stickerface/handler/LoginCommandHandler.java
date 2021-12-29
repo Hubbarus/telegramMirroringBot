@@ -1,6 +1,7 @@
 package com.telegrambot.stickerface.handler;
 
 import com.telegrambot.stickerface.config.VkClientConfig;
+import com.telegrambot.stickerface.model.BotUser;
 import com.telegrambot.stickerface.service.MirroringUrlService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 @Log4j2
@@ -28,36 +32,43 @@ public class LoginCommandHandler extends AbstractHandler {
     }
 
     @Override
-    public void handle(long chatId, Message message) throws TelegramApiException {
+    public List<Message> handle(long chatId, Message message) throws TelegramApiException {
+        deleteOwnMessage(chatId, message);
+        List<Message> sentMessages = new ArrayList<>();
+        BotUser user = urlService.getBotUserByChatId(chatId);
         synchronized (urlService) {
-            if (!urlService.isLoggedIn()) {
+            if (!user.isLoggedIn()) {
                 String urlTemplate = UriComponentsBuilder.fromHttpUrl(vkClientConfig.getTokenUrl())
                         .queryParam("client_id", String.valueOf(vkClientConfig.getAppId()))
                         .queryParam("scope", "offline")
                         .queryParam("redirect_uri", vkClientConfig.getRedirectUri())
                         .queryParam("display", "page")
                         .queryParam("response_type", "token")
-                        .queryParam("state", "authorizeBot")
+                        .queryParam("state", String.valueOf(chatId))
                         .encode()
                         .toUriString();
 
-                bot.execute(getDefaultMessage(chatId, message, LOGIN_REPLY_MESSAGE, ""));
-                bot.execute(getDefaultMessage(chatId, message, urlTemplate, ""));
+                sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_REPLY_MESSAGE, "")));
+                sentMessages.add(bot.execute(getDefaultMessage(chatId, urlTemplate, "")));
 
                 try {
                     urlService.wait(vkClientConfig.getWaitingLoginTime());
                 } catch (InterruptedException e) {
-                    bot.execute(getDefaultMessage(chatId, message, LOGIN_FAILED_REPLY_MESSAGE, ""));
+                    sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_FAILED_REPLY_MESSAGE, "")));
+                    Thread.currentThread().interrupt();
                 }
 
-                if (urlService.isLoggedIn()) {
-                    bot.execute(getDefaultMessage(chatId, message, LOGIN_SUCCESSFUL_REPLY_MESSAGE, ""));
+                BotUser updatedUser = urlService.getBotUserByChatId(chatId);
+
+                if (updatedUser.isLoggedIn()) {
+                    sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_SUCCESSFUL_REPLY_MESSAGE, "")));
                 } else {
-                    bot.execute(getDefaultMessage(chatId, message, LOGIN_FAILED_REPLY_MESSAGE, "Maximum waiting time exceeded!"));
+                    sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_FAILED_REPLY_MESSAGE, "Maximum waiting time exceeded!")));
                 }
             } else {
-                bot.execute(getDefaultMessage(chatId, message, LOGIN_SUCCESSFUL_REPLY_MESSAGE, "Already logged in!"));
+                sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_SUCCESSFUL_REPLY_MESSAGE, "Already logged in!")));
             }
         }
+        return sentMessages;
     }
 }

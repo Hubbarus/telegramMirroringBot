@@ -24,7 +24,7 @@ public class VkClientConfig {
     private int waitingLoginTime;
 
     @Bean
-    public VkApiClient getVkApiCLient(TransportClient transportClient) {
+    public VkApiClient getVkApiClient(TransportClient transportClient) {
         return new VkApiClient(transportClient);
     }
 

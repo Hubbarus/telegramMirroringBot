@@ -1,10 +1,14 @@
 package com.telegrambot.stickerface.handler;
 
+import com.telegrambot.stickerface.model.BotUser;
 import com.telegrambot.stickerface.service.MirroringUrlService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.util.Collections;
+import java.util.List;
 
 @Component
 public class RegisterCommandHandler extends AbstractHandler {
@@ -18,22 +22,28 @@ public class RegisterCommandHandler extends AbstractHandler {
     private MirroringUrlService urlService;
 
     @Override
-    public void handle(long chatId, Message message) throws TelegramApiException {
-        if (urlService.isLoggedIn()) {
+    public List<Message> handle(long chatId, Message message) throws TelegramApiException {
+        deleteOwnMessage(chatId, message);
+        BotUser user = urlService.getBotUserByChatId(chatId);
+
+        if (user.isLoggedIn()) {
             String[] input = message.getText().split(" ");
 
             if (input.length != 2) {
-                bot.execute(getDefaultMessage(chatId, message, REGISTER_FAIL_REPLY_MESSAGE, ""));
+                return Collections.singletonList(bot.execute(getDefaultMessage(chatId, REGISTER_FAIL_REPLY_MESSAGE, "")));
             } else {
-                if (urlService.isUrlValid(input[1]) != null) {
-                    urlService.setUrl(input[1]);
-                    bot.execute(getDefaultMessage(chatId, message, REGISTER_SUCCESS_REPLY_MESSAGE, urlService.getUrl()));
+                if (urlService.isUrlValid(input[1])) {
+                    user.setUrl(input[1]);
+                    user.setRegistered(true);
+                    urlService.saveBotUser(user);
+
+                    return Collections.singletonList(bot.execute(getDefaultMessage(chatId, REGISTER_SUCCESS_REPLY_MESSAGE, user.getUrl())));
                 } else {
-                    bot.execute(getDefaultMessage(chatId, message, REGISTER_FAIL_URL_NOT_VALID_REPLY_MESSAGE, input[1]));
+                    return Collections.singletonList(bot.execute(getDefaultMessage(chatId, REGISTER_FAIL_URL_NOT_VALID_REPLY_MESSAGE, input[1])));
                 }
             }
         } else {
-            bot.execute(getDefaultMessage(chatId, message, REGISTER_FAIL_NOT_LOGGED_IN_REPLY_MESSAGE, ""));
+            return Collections.singletonList(bot.execute(getDefaultMessage(chatId, REGISTER_FAIL_NOT_LOGGED_IN_REPLY_MESSAGE, "")));
         }
     }
 }

@@ -1,3 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:db;DB_CLOSE_DELAY=-1
+    username: username
+    password: password
+    driver-class-name: org.h2.Driver
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jackson:
+    default-property-inclusion: non_null
+
 bot:
   name: VkMirroringBot
   token: "1915762352:AAHaW2XeNZJCYuZ9P10LFJk9zKPgFurx2Qg"

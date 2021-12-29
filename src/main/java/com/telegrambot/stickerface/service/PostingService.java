@@ -2,45 +2,52 @@ package com.telegrambot.stickerface.service;
 
 import com.telegrambot.stickerface.dto.VkMessage;
 import com.telegrambot.stickerface.listener.Bot;
-import lombok.Setter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-@Service
-@Setter
 @Slf4j
 public class PostingService implements Runnable {
 
-    private long chatId;
-
-    @Autowired
+    private Long chatId;
     private Bot bot;
-
-    @Autowired
     private MirroringUrlService urlService;
+
+    public PostingService(long chatId, Bot bot, MirroringUrlService urlService) {
+        this.chatId = chatId;
+        this.bot = bot;
+        this.urlService = urlService;
+    }
 
     @Override
     public void run() {
-        while (!urlService.getMessageQueue().isEmpty()) {
-            VkMessage messageFromQueue = urlService.getMessageQueue().poll();
-            messageFromQueue.getImage().setChatId(String.valueOf(chatId));
+        String chatIdString = String.valueOf(chatId);
+        VkMessage messageFromQueue = urlService.getMessageQueue().poll();
+
+        if (messageFromQueue != null) {
+            SendPhoto image = messageFromQueue.getImage();
+            SendMediaGroup mediaGroup = messageFromQueue.getMediaGroup();
+            SendMessage message = messageFromQueue.getMessage();
 
             try {
-                if (messageFromQueue.getText() != null) {
-                    SendMessage message = new SendMessage();
-                    message.setText(messageFromQueue.getText());
-                    message.setChatId(String.valueOf(chatId));
-                    bot.execute(message);
+                log.info("Posting message from queue to chat...");
+
+                if (image != null) {
+                    image.setChatId(chatIdString);
+                    bot.execute(image);
+                } else if (mediaGroup != null) {
+                    mediaGroup.setChatId(chatIdString);
+                    bot.execute(mediaGroup);
                 }
 
-                log.info("Posting message from queue to chat...");
-                bot.execute(messageFromQueue.getImage());
-            } catch (TelegramApiException ex) {
-                ex.printStackTrace();
+                if (message != null) {
+                    message.setChatId(chatIdString);
+                    bot.execute(message);
+                }
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
             }
         }
     }

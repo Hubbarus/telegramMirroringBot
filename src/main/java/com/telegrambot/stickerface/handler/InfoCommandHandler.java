@@ -4,6 +4,9 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.util.Collections;
+import java.util.List;
+
 @Component
 public class InfoCommandHandler extends AbstractHandler {
 
@@ -11,7 +14,8 @@ public class InfoCommandHandler extends AbstractHandler {
             "Creator is @hubbarus. For donation do something";
 
     @Override
-    public void handle(long chatId, Message message) throws TelegramApiException {
-        bot.execute(getDefaultMessage(chatId, message, INFO_REPLY_MESSAGE, ""));
+    public List<Message> handle(long chatId, Message message) throws TelegramApiException {
+        deleteOwnMessage(chatId, message);
+        return Collections.singletonList(bot.execute(getDefaultMessage(chatId, INFO_REPLY_MESSAGE, "")));
     }
 }

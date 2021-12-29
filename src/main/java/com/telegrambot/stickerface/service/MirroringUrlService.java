@@ -1,9 +1,11 @@
 package com.telegrambot.stickerface.service;
 
 import com.telegrambot.stickerface.dto.VkMessage;
+import com.telegrambot.stickerface.model.BotUser;
+import com.telegrambot.stickerface.repository.BotUserRepository;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -13,35 +15,24 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @Getter
 public class MirroringUrlService {
 
-    private static final String VALIDATION_REGEX = "((([A-Za-z]{3,9}:(?:\\/\\/)?)(?:[-;:&=\\+\\$,\\w]+@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=\\+\\$,\\w]+@)[A-Za-z0-9.-]+)((?:\\/[\\+~%\\/.\\w\\-_]*)?\\??(?:[-\\+=&;%@.\\w_]*)#?(?:[\\w]*))?)";
-
-    private String url;
-
-    private boolean isRegistered;
-
-    private boolean isLoggedIn;
-
-    private String token;
-
-    private String userId;
-
+    private static final String URL_VALIDATION_REGEX = "((([A-Za-z]{3,9}:(?://)?)(?:[-;:&=+$,\\w]+@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=+$,\\w]+@)[A-Za-z0-9.-]+)((?:/[+~%/.\\w\\-_]*)?\\??(?:[-+=&;%@.\\w_]*)#?(?:[\\w]*))?)";
+    private final BotUserRepository repository;
     protected ConcurrentLinkedQueue<VkMessage> messageQueue = new ConcurrentLinkedQueue<>();
 
-    public String isUrlValid(String urlToValidate) {
-        return urlToValidate.matches(VALIDATION_REGEX) ? urlToValidate : null;
+    @Autowired
+    public MirroringUrlService(BotUserRepository repository) {
+        this.repository = repository;
     }
 
-    public synchronized boolean isRegistered() { return this.isRegistered; }
+    public boolean isUrlValid(String urlToValidate) {
+        return urlToValidate.matches(URL_VALIDATION_REGEX);
+    }
 
-    public synchronized void setRegistered(boolean isRegistered) { this.isRegistered = isRegistered; }
+    public BotUser getBotUserByChatId(Long chatId) {
+        return repository.findByChatId(chatId);
+    }
 
-    public synchronized boolean isLoggedIn() { return this.isLoggedIn; }
-
-    public synchronized void setLoggedId(boolean isLoggedIn) { this.isLoggedIn = isLoggedIn; }
-
-    public void setToken(String token) { this.token = token; }
-
-    public void setUserId(String userId) { this.userId = userId; }
-
-    public void setUrl(String url) { this.url = url; }
+    public void saveBotUser(BotUser user) {
+        repository.save(user);
+    }
 }

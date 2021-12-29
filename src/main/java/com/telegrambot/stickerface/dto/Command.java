@@ -1,7 +1,6 @@
 package com.telegrambot.stickerface.dto;
 
 import lombok.Getter;
-import org.telegram.bot.kernel.database.DatabaseManager;
 
 @Getter
 public enum Command {

@@ -4,6 +4,9 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.util.Collections;
+import java.util.List;
+
 @Component
 public class DefaultCommandHandler extends AbstractHandler {
 
@@ -11,7 +14,8 @@ public class DefaultCommandHandler extends AbstractHandler {
             "Or type \"/help\" for see all actions.";
 
     @Override
-    public void handle(long chatId, Message message) throws TelegramApiException {
-        bot.execute(getDefaultMessage(chatId, message, DEFAULT_REPLY_MESSAGE, ""));
+    public List<Message> handle(long chatId, Message message) throws TelegramApiException {
+        deleteOwnMessage(chatId, message);
+        return Collections.singletonList(bot.execute(getDefaultMessage(chatId, DEFAULT_REPLY_MESSAGE, "")));
     }
 }

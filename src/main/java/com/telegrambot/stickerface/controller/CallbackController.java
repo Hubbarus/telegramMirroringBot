@@ -1,6 +1,7 @@
 package com.telegrambot.stickerface.controller;
 
 import com.telegrambot.stickerface.dto.AuthCallback;
+import com.telegrambot.stickerface.model.BotUser;
 import com.telegrambot.stickerface.service.MirroringUrlService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,18 +27,24 @@ public class CallbackController {
         log.info("Login callback received!");
         String token = body.getToken();
         String userId = body.getUserId();
+        String chatId = body.getState();
         if (token != null && !token.isEmpty() && !token.isBlank()
-                && userId != null && !userId.isEmpty() && !userId.isBlank()
-                && !urlService.isLoggedIn()) {
+                && userId != null && !userId.isEmpty() && !userId.isBlank()) {
             synchronized (urlService) {
                 log.info("Token exists!");
-                urlService.setToken(token);
-                urlService.setUserId(userId);
-                urlService.setLoggedId(true);
+                BotUser user = urlService.getBotUserByChatId(Long.parseLong(chatId));
+                if (!user.isLoggedIn()) {
+                    user.setToken(token);
+                    user.setUserId(userId);
+                    user.setLoggedIn(true);
+                    urlService.saveBotUser(user);
+                } else {
+                    log.error("Already logged in!");
+                }
                 urlService.notifyAll();
             }
         } else {
-            log.error("No token or userId provided in callback or already logged in!");
+            log.error("No token or userId provided in callback!");
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
