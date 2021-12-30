@@ -45,9 +45,9 @@ public class PollingService implements Runnable {
 
     private ZonedDateTime lastDateTime = ZonedDateTime.now().minusHours(48);
 
-    private Long chatId;
-    private MirroringUrlService urlService;
-    private VkApiClient vkApiClient;
+    private final Long chatId;
+    private final MirroringUrlService urlService;
+    private final VkApiClient vkApiClient;
 
     public PollingService(Long chatId, MirroringUrlService urlService, VkApiClient vkApiClient) {
         this.chatId = chatId;
@@ -130,6 +130,10 @@ public class PollingService implements Runnable {
                 log.info("WallPost has only one attachment.");
                 createSingleMedia(attachments.get(0), postText, vkMessage);
             }
+        } else {
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setText(postText);
+            vkMessage.setMessage(sendMessage);
         }
         return vkMessage;
     }
@@ -140,20 +144,21 @@ public class PollingService implements Runnable {
         if (attachment.getType().equals(WallpostAttachmentType.PHOTO)) {
             Optional<InputFile> photoAttachment = createSinglePhotoAttachment(attachment);
             photoAttachment.ifPresent(image::setPhoto);
-        }
 
-        if (postText != null && (!postText.isEmpty())) {
-            if (postText.length() >= 200) {
-                log.info("Too long post, will be set to separate message.");
-                SendMessage message = new SendMessage();
-                message.setText(UP_ARROW_EMOJI.concat(postText));
-                vkMessage.setMessage(message);
-            } else {
-                image.setCaption(postText);
+            if (postText != null && !postText.isEmpty()) {
+                if (postText.length() >= 200) {
+                    log.info("Too long post, will be set to separate message.");
+                    SendMessage message = new SendMessage();
+                    message.setText(UP_ARROW_EMOJI.concat(postText));
+                    vkMessage.setMessage(message);
+                } else {
+                    image.setCaption(postText);
+                }
             }
-        }
 
-        vkMessage.setImage(image);
+            vkMessage.setImage(image);
+        }
+        //TODO add video support
     }
 
     private void createMediaGroup(List<WallpostAttachment> attachments, String postText, VkMessage vkMessage) {
@@ -165,9 +170,10 @@ public class PollingService implements Runnable {
                 Optional<InputMedia> inputMedia = createGroupPhotoAttachment(att);
                 inputMedia.ifPresent(medias::add);
             }
+            //TODO add video support
         }
 
-        if (postText != null && (!postText.isEmpty())) {
+        if (postText != null && !postText.isEmpty() && !medias.isEmpty()) {
             if (postText.length() >= 200) {
                 log.info("Too long post, will be set to separate message.");
                 SendMessage message = new SendMessage();
@@ -179,8 +185,10 @@ public class PollingService implements Runnable {
             }
         }
 
-        group.setMedias(medias);
-        vkMessage.setMediaGroup(group);
+        if (!medias.isEmpty()) {
+            group.setMedias(medias);
+            vkMessage.setMediaGroup(group);
+        }
     }
 
     private Optional<InputMedia> createGroupPhotoAttachment(WallpostAttachment att) {
@@ -188,17 +196,16 @@ public class PollingService implements Runnable {
         return photo.getSizes().stream()
                 .max(Comparator.comparing(PhotoSizes::getHeight))
                 .map(PhotoSizes::getUrl)
-                .map(url -> {
-                    try {
-                        return readAndConvertImage(url);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        return null;
-                    }
-                })
+                .map(this::readAndConvertImage)
+                .filter(Objects::nonNull)
                 .map(is -> {
                     InputMedia media = new InputMediaPhoto();
-                    media.setMedia(is, "att" + photo.getAccessKey() + ".jpeg");
+                    try {
+                        media.setMedia(is, "att" + photo.getAccessKey() + ".jpeg");
+                        is.close();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
                     return media;
                 });
     }
@@ -208,27 +215,29 @@ public class PollingService implements Runnable {
         return photo.getSizes().stream()
                 .max(Comparator.comparing(PhotoSizes::getHeight))
                 .map(PhotoSizes::getUrl)
-                .map(url -> {
-                    try {
-                        return readAndConvertImage(url);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        return null;
-                    }
-                })
+                .map(this::readAndConvertImage)
+                .filter(Objects::nonNull)
                 .map(is -> {
                     InputFile media = new InputFile();
-                    media.setMedia(is, "att" + photo.getAccessKey() + ".jpeg");
+                    try {
+                        media.setMedia(is, "att" + photo.getAccessKey() + ".jpeg");
+                        is.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     return media;
                 });
     }
 
-    private InputStream readAndConvertImage(URI imageUrl) throws IOException {
-        BufferedImage read = ImageIO.read(imageUrl.toURL());
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        ImageIO.write(read, "jpeg", os);
-        return new ByteArrayInputStream(os.toByteArray());
-
-
+    private InputStream readAndConvertImage(URI imageUrl) {
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            BufferedImage read = ImageIO.read(imageUrl.toURL());
+            ImageIO.write(read, "jpeg", os);
+            return new ByteArrayInputStream(os.toByteArray());
+        } catch (IOException ex) {
+            log.error("Error reading file!");
+            ex.printStackTrace();
+            return null;
+        }
     }
 }
