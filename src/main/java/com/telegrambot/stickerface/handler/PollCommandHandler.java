@@ -15,6 +15,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -26,15 +27,12 @@ public class PollCommandHandler extends AbstractHandler {
 
     private final MirroringUrlService urlService;
     private final VkApiClient vkClient;
-    private final ScheduledExecutorService executorService;
 
     @Autowired
-    public PollCommandHandler(MirroringUrlService urlService, VkApiClient vkClient,
-                              ScheduledExecutorService executorService, Bot bot) {
+    public PollCommandHandler(MirroringUrlService urlService, VkApiClient vkClient, Bot bot) {
         super(bot);
         this.urlService = urlService;
         this.vkClient = vkClient;
-        this.executorService = executorService;
     }
 
     @Override
@@ -45,6 +43,8 @@ public class PollCommandHandler extends AbstractHandler {
             return Collections.singletonList(bot.execute(getDefaultMessage(chatId, POLL_FAIL_REPLY_MESSAGE, "")));
         }
 
+        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(3);
+
         PollingService pollingService = new PollingService(chatId, urlService, vkClient);
         PostingService postingService = new PostingService(chatId, bot, urlService);
         CheckRunnableService checkService = new CheckRunnableService(chatId, executorService, urlService);
@@ -52,9 +52,11 @@ public class PollCommandHandler extends AbstractHandler {
         log.info("Starting polling, posting and checking threads...");
         user.setRegistered(true);
         urlService.saveBotUser(user);
+
         executorService.scheduleAtFixedRate(pollingService, 0, 3, TimeUnit.SECONDS);
         executorService.scheduleAtFixedRate(postingService, 5, 3, TimeUnit.SECONDS);
         executorService.scheduleAtFixedRate(checkService, 5, 5, TimeUnit.SECONDS);
+
         return Collections.emptyList();
     }
 }

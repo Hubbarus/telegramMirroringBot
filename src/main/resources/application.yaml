@@ -1,14 +1,14 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:db;DB_CLOSE_DELAY=-1
-    username: username
-    password: password
-    driver-class-name: org.h2.Driver
+    url: ${JDBC_DATABASE_URL}
+    username: ${JDBC_DATABASE_USERNAME}
+    password: ${JDBC_DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
   jpa:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: create
   h2:
@@ -19,14 +19,14 @@ spring:
     default-property-inclusion: non_null
 
 bot:
-  name: VkMirroringBot
-  token: "1915762352:AAHaW2XeNZJCYuZ9P10LFJk9zKPgFurx2Qg"
+  name: ${BOT_NAME}
+  token: ${BOT_TOKEN}
 
 vk:
   app-id: 8030150
-  redirect-uri: "http://192.168.31.160:8080/login.html"
+  redirect-uri: ${REDIRECT_URL}
   token-url: "https://oauth.vk.com/authorize"
-  waiting-login-time: 60000
+  waiting-login-time: ${WAITING_LOGIN_TIME}
 
 logging:
   file:
