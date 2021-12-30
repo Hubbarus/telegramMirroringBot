@@ -30,6 +30,8 @@ public class CheckRunnableService implements Runnable {
             } else {
                 log.info("User have called /stop command. Shutting down threads!");
                 executorService.shutdown();
+                user.setUrl(null);
+                urlService.saveBotUser(user);
             }
         }
     }

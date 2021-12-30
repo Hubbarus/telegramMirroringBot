@@ -8,23 +8,18 @@ import com.vk.api.sdk.client.VkApiClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.ScheduledExecutorService;
-
 @Service
 public class HandlerFactory {
 
     private final VkClientConfig vkClientConfig;
     private final MirroringUrlService urlService;
-    private final ScheduledExecutorService scheduledExecutorService;
     private final VkApiClient vkApiClient;
     private final Bot bot;
 
     @Autowired
-    public HandlerFactory(VkClientConfig vkClientConfig, MirroringUrlService urlService,
-                          ScheduledExecutorService scheduledExecutorService, VkApiClient vkApiClient, Bot bot) {
+    public HandlerFactory(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot) {
         this.vkClientConfig = vkClientConfig;
         this.urlService = urlService;
-        this.scheduledExecutorService = scheduledExecutorService;
         this.vkApiClient = vkApiClient;
         this.bot = bot;
     }
@@ -38,7 +33,7 @@ public class HandlerFactory {
             case REGISTER:
                 return new RegisterCommandHandler(bot, urlService);
             case START_POLL:
-                return new PollCommandHandler(urlService, vkApiClient, scheduledExecutorService, bot);
+                return new PollCommandHandler(urlService, vkApiClient, bot);
             case HELP:
                 return new HelpCommandHandler(bot);
             case INFO:
@@ -46,7 +41,7 @@ public class HandlerFactory {
             case STATUS:
                 return new StatusCommandHandler(bot, urlService);
             case STOP:
-                return new StopCommandHandler(urlService, bot, scheduledExecutorService);
+                return new StopCommandHandler(urlService, bot);
             default:
                 return new DefaultCommandHandler(bot);
         }
