@@ -24,7 +24,7 @@ public abstract class AbstractHandler {
         this.bot = bot;
     }
 
-    public abstract List<Message> handle(long chatId, Message message) throws TelegramApiException, InterruptedException;
+    public abstract List<Message> handle(long chatId, Message message) throws Exception;
 
     void deleteOwnMessage(long chatId, Message receivedMessage) throws TelegramApiException {
         DeleteMessage deleteMessage = new DeleteMessage();

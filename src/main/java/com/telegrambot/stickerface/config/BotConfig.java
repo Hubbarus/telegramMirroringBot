@@ -16,8 +16,11 @@ import java.util.concurrent.ScheduledExecutorService;
 public class BotConfig {
 
     private String name;
-
     private String token;
+    private int initialPollingDelay;
+    private int initialPostingDelay;
+    private int pollingPeriod;
+    private int postingPeriod;
 
     @Bean
     public ScheduledExecutorService getscheduledExecutorService() {

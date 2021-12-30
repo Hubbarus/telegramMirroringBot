@@ -21,6 +21,10 @@ spring:
 bot:
   name: ${BOT_NAME}
   token: ${BOT_TOKEN}
+  initial-polling-delay: ${BOT_POLL_DELAY}
+  initial-posting-delay: ${BOT_POST_DELAY}
+  polling-period: ${BOT_POLL_PERIOD}
+  posting-period: ${BOT_POST_PERIOD}
 
 vk:
   app-id: 8030150

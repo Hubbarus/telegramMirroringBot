@@ -69,14 +69,11 @@ public class Bot extends TelegramLongPollingBot {
             log.error(String.format("Error while multithreading. ChatId: %s. %n Exception: %s %n", chatId, e.getMessage()));
             e.printStackTrace();
             Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            log.error(String.format("Unexpected error. ChatId: %s. %n Exception: %s %n", chatId, e.getMessage()));
+            e.printStackTrace();
         }
     }
-
-//    private AbstractHandler getHandler(CommandEnum command) {
-//        Object bean = context.getBean(command.getValue().toLowerCase().replaceAll("/", "")
-//                + "CommandHandler");
-//        return (AbstractHandler) bean;
-//    }
 
     @Override
     public String getBotUsername() {

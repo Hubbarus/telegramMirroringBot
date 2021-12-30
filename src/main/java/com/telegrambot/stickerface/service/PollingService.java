@@ -1,12 +1,8 @@
 package com.telegrambot.stickerface.service;
 
 import com.telegrambot.stickerface.dto.VkMessage;
-import com.telegrambot.stickerface.model.BotUser;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.UserActor;
-import com.vk.api.sdk.objects.groups.Group;
-import com.vk.api.sdk.objects.groups.responses.GetByIdObjectLegacyResponse;
-import com.vk.api.sdk.objects.groups.responses.GetResponse;
 import com.vk.api.sdk.objects.photos.Photo;
 import com.vk.api.sdk.objects.photos.PhotoSizes;
 import com.vk.api.sdk.objects.wall.Wallpost;
@@ -42,50 +38,29 @@ import java.util.stream.Collectors;
 public class PollingService implements Runnable {
 
     private static final String UP_ARROW_EMOJI = new String(Character.toChars(0x2B06));
-
-    private ZonedDateTime lastDateTime = ZonedDateTime.now().minusHours(48);
-
     private final Long chatId;
     private final MirroringUrlService urlService;
     private final VkApiClient vkApiClient;
+    private ZonedDateTime lastDateTime = ZonedDateTime.now().minusHours(48);
+    private final UserActor actor;
+    private final Integer groupId;
 
-    public PollingService(Long chatId, MirroringUrlService urlService, VkApiClient vkApiClient) {
+    public PollingService(Long chatId, MirroringUrlService urlService, VkApiClient vkApiClient, UserActor actor, Integer groupId) {
         this.chatId = chatId;
         this.urlService = urlService;
         this.vkApiClient = vkApiClient;
+        this.actor = actor;
+        this.groupId = groupId;
     }
 
     @Override
     public void run() {
-        BotUser user = urlService.getBotUserByChatId(chatId);
-
-        log.info("Requesting host...\n");
-
+        log.info("Requesting host...");
         try {
-            UserActor actor = new UserActor(Integer.parseInt(user.getUserId()), user.getToken());
-            GetResponse userGroupsResponse = vkApiClient
-                    .groups()
-                    .get(actor)
-                    .execute();
-
-            List<GetByIdObjectLegacyResponse> groups = vkApiClient.groups()
-                    .getByIdObjectLegacy(actor)
-                    .groupIds(userGroupsResponse.getItems()
-                            .stream()
-                            .map(String::valueOf)
-                            .collect(Collectors.toList()))
-                    .execute();
-
-            Integer groupId = groups.stream()
-                    .filter(group -> user.getUrl().contains(group.getScreenName()))
-                    .findFirst()
-                    .map(Group::getId)
-                    .orElseThrow(() -> new IllegalArgumentException("Problems getting groupId"));
-
             com.vk.api.sdk.objects.wall.responses.GetResponse wallPosts = vkApiClient
                     .wall()
                     .get(actor)
-                    .ownerId(groupId * -1)
+                    .ownerId(groupId)
                     .count(50)
                     .execute();
 
@@ -102,7 +77,7 @@ public class PollingService implements Runnable {
                         VkMessage vkMessage = createVkMessage(post);
                         urlService.getMessageQueue().add(vkMessage);
 
-                        log.info("Last polled post was in: " + lastDateTime + ". Now will be updated!");
+                        log.info("Last polled post was in: " + lastDateTime.toLocalDateTime() + ". Now will be updated!");
                         lastDateTime = Instant.ofEpochSecond(post.getDate()).atZone(ZoneId.of("Europe/Moscow"));
                     });
 

@@ -1,5 +1,6 @@
 package com.telegrambot.stickerface.handler;
 
+import com.telegrambot.stickerface.config.BotConfig;
 import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.dto.CommandEnum;
 import com.telegrambot.stickerface.listener.Bot;
@@ -15,13 +16,15 @@ public class HandlerFactory {
     private final MirroringUrlService urlService;
     private final VkApiClient vkApiClient;
     private final Bot bot;
+    private final BotConfig botConfig;
 
     @Autowired
-    public HandlerFactory(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot) {
+    public HandlerFactory(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig) {
         this.vkClientConfig = vkClientConfig;
         this.urlService = urlService;
         this.vkApiClient = vkApiClient;
         this.bot = bot;
+        this.botConfig = botConfig;
     }
 
     public AbstractHandler getHandler(CommandEnum command) {
@@ -33,7 +36,7 @@ public class HandlerFactory {
             case REGISTER:
                 return new RegisterCommandHandler(bot, urlService);
             case START_POLL:
-                return new PollCommandHandler(urlService, vkApiClient, bot);
+                return new PollCommandHandler(urlService, vkApiClient, bot, botConfig);
             case HELP:
                 return new HelpCommandHandler(bot);
             case INFO:
