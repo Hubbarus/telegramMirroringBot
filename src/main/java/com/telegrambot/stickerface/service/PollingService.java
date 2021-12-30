@@ -32,25 +32,28 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class PollingService implements Runnable {
 
     private static final String UP_ARROW_EMOJI = new String(Character.toChars(0x2B06));
-    private final Long chatId;
     private final MirroringUrlService urlService;
     private final VkApiClient vkApiClient;
-    private ZonedDateTime lastDateTime = ZonedDateTime.now().minusHours(48);
     private final UserActor actor;
     private final Integer groupId;
+    private final String groupName;
+    private final int communitiesCount;
+    private ZonedDateTime lastDateTime = ZonedDateTime.now().minusHours(48);
 
-    public PollingService(Long chatId, MirroringUrlService urlService, VkApiClient vkApiClient, UserActor actor, Integer groupId) {
-        this.chatId = chatId;
+    public PollingService(MirroringUrlService urlService, VkApiClient vkApiClient, UserActor actor, Integer groupId, String groupName, int communitiesCount) {
         this.urlService = urlService;
         this.vkApiClient = vkApiClient;
         this.actor = actor;
         this.groupId = groupId;
+        this.groupName = groupName;
+        this.communitiesCount = communitiesCount;
     }
 
     @Override
@@ -71,20 +74,23 @@ public class PollingService implements Runnable {
                     })
                     .collect(Collectors.toList());
 
+            AtomicInteger newMessagesCount = new AtomicInteger();
             dateFilteredPosts.stream().filter(Objects::nonNull)
                     .sorted(Comparator.comparing(Wallpost::getDate))
                     .forEach(post -> {
                         VkMessage vkMessage = createVkMessage(post);
                         urlService.getMessageQueue().add(vkMessage);
+                        newMessagesCount.getAndIncrement();
 
                         log.info("Last polled post was in: " + lastDateTime.toLocalDateTime() + ". Now will be updated!");
-                        lastDateTime = Instant.ofEpochSecond(post.getDate()).atZone(ZoneId.of("Europe/Moscow"));
+                        lastDateTime = convertDate(post.getDate());
                     });
 
-            if (urlService.getMessageQueue().isEmpty()) {
-                log.info("No new posts was polled");
+            int count = newMessagesCount.get();
+            if (count != 0) {
+                log.info("New messages polled from '" + groupName + "': " + count);
             } else {
-                log.info("Have polled new posts: " + urlService.getMessageQueue().size());
+                log.info("No new messages from '" + groupName + "'");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -92,9 +98,11 @@ public class PollingService implements Runnable {
     }
 
     private VkMessage createVkMessage(WallpostFull post) {
-        log.info("Creating message...");
+        log.info("Creating message from '" + groupName + "' community...");
         VkMessage vkMessage = new VkMessage();
-        String postText = post.getText();
+        vkMessage.setCommunityName(groupName);
+        vkMessage.setPostDate(convertDate(post.getDate()).toLocalDateTime());
+        String postText = formatPostText(post.getText());
 
         List<WallpostAttachment> attachments = post.getAttachments();
         if (attachments != null && !attachments.isEmpty()) {
@@ -214,5 +222,13 @@ public class PollingService implements Runnable {
             ex.printStackTrace();
             return null;
         }
+    }
+
+    private ZonedDateTime convertDate(Integer date) {
+        return Instant.ofEpochSecond(date).atZone(ZoneId.of("Europe/Moscow"));
+    }
+
+    private String formatPostText(String postText) {
+        return communitiesCount > 1 ? "\t\t".concat(groupName).concat("\n\n").concat(postText) : postText;
     }
 }

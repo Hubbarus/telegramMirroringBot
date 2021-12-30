@@ -1,6 +1,5 @@
 package com.telegrambot.stickerface.handler;
 
-
 import com.telegrambot.stickerface.listener.Bot;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +12,8 @@ import java.util.List;
 @Slf4j
 public class DeleteMessageHandler implements Runnable {
 
-    private Bot bot;
-    private List<Message> ownMessages;
+    private final Bot bot;
+    private final List<Message> ownMessages;
 
     public DeleteMessageHandler(Bot bot, List<Message> ownMessages) {
         this.bot = bot;
@@ -25,14 +24,14 @@ public class DeleteMessageHandler implements Runnable {
     @Override
     public void run() {
         Thread.sleep(30000);
-        log.info("Deleting own messages from channel...");
         ownMessages.stream().filter(msg -> msg.getChatId() < 0)
                 .forEach(msg -> {
+                    log.info("Deleting own messages from channel...");
                     DeleteMessage message = new DeleteMessage();
                     message.setChatId(String.valueOf(msg.getChatId()));
                     message.setMessageId(msg.getMessageId());
                     try {
-                        bot.execute(message);
+                        bot.executeAsync(message);
                     } catch (TelegramApiException e) {
                         e.printStackTrace();
                     }

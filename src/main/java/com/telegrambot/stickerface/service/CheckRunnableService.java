@@ -1,7 +1,6 @@
 package com.telegrambot.stickerface.service;
 
 import com.telegrambot.stickerface.model.BotUser;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ScheduledExecutorService;
@@ -9,9 +8,9 @@ import java.util.concurrent.ScheduledExecutorService;
 @Slf4j
 public class CheckRunnableService implements Runnable {
 
-    private Long chatId;
-    private ScheduledExecutorService executorService;
-    private MirroringUrlService urlService;
+    private final Long chatId;
+    private final ScheduledExecutorService executorService;
+    private final MirroringUrlService urlService;
 
     public CheckRunnableService(Long chatId, ScheduledExecutorService executorService, MirroringUrlService urlService) {
         this.chatId = chatId;
@@ -19,19 +18,27 @@ public class CheckRunnableService implements Runnable {
         this.urlService = urlService;
     }
 
-    @SneakyThrows
     @Override
     public void run() {
-        BotUser user = urlService.getBotUserByChatId(chatId);
-        if (user != null) {
-            if (user.isRegistered()) {
-                log.info("User didn't stop execution yet. Continue polling...");
-                Thread.sleep(10000);
-            } else {
-                log.info("User have called /stop command. Shutting down threads!");
-                executorService.shutdown();
-                user.setUrl(null);
-                urlService.saveBotUser(user);
+        boolean isNotified = false;
+        while (!isNotified) {
+            synchronized (urlService) {
+                BotUser user = urlService.getBotUserByChatId(chatId);
+                if (user != null) {
+                    if (!user.isStopped()) {
+                        log.info("User didn't stop execution yet. Continue polling...");
+                        try {
+                            urlService.wait(10000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        log.info("User have called /stop command. Shutting down threads!");
+                        executorService.shutdown();
+                        isNotified = true;
+                        urlService.saveBotUser(user);
+                    }
+                }
             }
         }
     }

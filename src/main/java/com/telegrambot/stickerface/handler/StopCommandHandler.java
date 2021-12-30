@@ -29,12 +29,15 @@ public class StopCommandHandler extends AbstractHandler {
     public List<Message> handle(long chatId, Message message) throws TelegramApiException {
         deleteOwnMessage(chatId, message);
         BotUser user = urlService.getBotUserByChatId(chatId);
-        if (user.isRegistered()) {
-            user.setRegistered(false);
-            urlService.saveBotUser(user);
-            return Collections.singletonList(bot.execute(getDefaultMessage(chatId, STOP_SUCCESS_REPLY_MESSAGE, "")));
-        } else {
-            return Collections.singletonList(bot.execute(getDefaultMessage(chatId, STOP_FAIL_REPLY_MESSAGE, "")));
+        synchronized (urlService) {
+            if (!user.isStopped()) {
+                user.setStopped(true);
+                urlService.notifyAll();
+                urlService.saveBotUser(user);
+                return Collections.singletonList(bot.execute(getDefaultMessage(chatId, STOP_SUCCESS_REPLY_MESSAGE, "")));
+            } else {
+                return Collections.singletonList(bot.execute(getDefaultMessage(chatId, STOP_FAIL_REPLY_MESSAGE, "")));
+            }
         }
     }
 }

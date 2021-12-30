@@ -34,7 +34,7 @@ public class HandlerFactory {
             case LOGIN:
                 return new LoginCommandHandler(vkClientConfig, urlService, bot);
             case REGISTER:
-                return new RegisterCommandHandler(bot, urlService);
+                return new RegisterCommandHandler(bot, urlService, vkApiClient);
             case START_POLL:
                 return new PollCommandHandler(urlService, vkApiClient, bot, botConfig);
             case HELP:

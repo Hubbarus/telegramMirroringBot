@@ -6,7 +6,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -18,5 +18,7 @@ public class VkMessage {
 
     private SendMessage message;
 
-    private OffsetDateTime postDate;
+    private LocalDateTime postDate;
+
+    private String communityName;
 }

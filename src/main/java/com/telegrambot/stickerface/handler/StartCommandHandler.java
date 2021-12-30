@@ -27,7 +27,6 @@ public class StartCommandHandler extends AbstractHandler {
         } else {
             userName = message.getChat().getTitle();
         }
-        deleteOwnMessage(chatId, message);
         return Collections.singletonList(bot.execute(this.getDefaultMessage(chatId, START_REPLY_MESSAGE, userName)));
     }
 }

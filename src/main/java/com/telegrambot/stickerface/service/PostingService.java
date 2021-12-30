@@ -8,12 +8,14 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 @Slf4j
 public class PostingService implements Runnable {
 
-    private Long chatId;
-    private Bot bot;
-    private MirroringUrlService urlService;
+    private final Long chatId;
+    private final Bot bot;
+    private final MirroringUrlService urlService;
 
     public PostingService(long chatId, Bot bot, MirroringUrlService urlService) {
         this.chatId = chatId;
@@ -24,7 +26,9 @@ public class PostingService implements Runnable {
     @Override
     public void run() {
         String chatIdString = String.valueOf(chatId);
-        VkMessage messageFromQueue = urlService.getMessageQueue().poll();
+        ConcurrentLinkedQueue<VkMessage> messageQueue = urlService.getMessageQueue();
+        log.info("Not posted messages count: " + messageQueue.size());
+        VkMessage messageFromQueue = messageQueue.poll();
 
         if (messageFromQueue != null) {
             SendPhoto image = messageFromQueue.getImage();
@@ -36,15 +40,15 @@ public class PostingService implements Runnable {
 
                 if (image != null) {
                     image.setChatId(chatIdString);
-                    bot.execute(image);
+                    bot.executeAsync(image);
                 } else if (mediaGroup != null) {
                     mediaGroup.setChatId(chatIdString);
-                    bot.execute(mediaGroup);
+                    bot.executeAsync(mediaGroup);
                 }
 
                 if (message != null) {
                     message.setChatId(chatIdString);
-                    bot.execute(message);
+                    bot.executeAsync(message);
                 }
             } catch (TelegramApiException e) {
                 e.printStackTrace();
