@@ -1,8 +1,11 @@
 package com.telegrambot.stickerface.handler;
 
+import com.telegrambot.stickerface.config.BotConfig;
+import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.listener.Bot;
+import com.telegrambot.stickerface.service.MirroringUrlService;
 import com.telegrambot.stickerface.util.MenuUtil;
-import org.springframework.stereotype.Component;
+import com.vk.api.sdk.client.VkApiClient;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
@@ -12,16 +15,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@Component
-public class StartCommandHandler extends AbstractHandler {
+public class StartCommandHandler extends AbstractHandler implements BotHandler {
 
     private static final String START_REPLY_MESSAGE = "Hello, %s! So let's start! Choose action from menu";
 
-    private final ReplyKeyboardMarkup keyboard;
-
-    StartCommandHandler(Bot bot, ReplyKeyboardMarkup keyboard) {
-        super(bot);
-        this.keyboard = keyboard;
+    StartCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
+        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
     }
 
     @Override
@@ -30,10 +29,10 @@ public class StartCommandHandler extends AbstractHandler {
         List<KeyboardRow> keyboardRows = new ArrayList<>();
         if (message.getChat().getUserName() != null) {
             userName = message.getChat().getUserName();
-            keyboardRows = MenuUtil.createKeyboard();
+            keyboardRows = MenuUtil.createMenuKeyboard();
         } else if (message.getChat().getFirstName() != null) {
             userName = message.getChat().getFirstName() + message.getChat().getLastName();
-            keyboardRows = MenuUtil.createKeyboard();
+            keyboardRows = MenuUtil.createMenuKeyboard();
         } else {
             userName = message.getChat().getTitle();
         }

@@ -1,15 +1,18 @@
 package com.telegrambot.stickerface.handler;
 
+import com.telegrambot.stickerface.config.BotConfig;
+import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.listener.Bot;
-import org.springframework.stereotype.Component;
+import com.telegrambot.stickerface.service.MirroringUrlService;
+import com.vk.api.sdk.client.VkApiClient;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Collections;
 import java.util.List;
 
-@Component
-public class HelpCommandHandler extends AbstractHandler {
+public class HelpCommandHandler extends AbstractHandler implements BotHandler {
 
     private static final String HELP_REPLY_MESSAGE =
             "Type \"/login\" to login to your VK account. This you have to do to register group to poll posts. \n" +
@@ -19,8 +22,8 @@ public class HelpCommandHandler extends AbstractHandler {
                     "Type \"/info\" to see information about developer and contacts. \n" +
                     "Type \"/stop\" if you want to stop this bot. \n";
 
-    HelpCommandHandler(Bot bot) {
-        super(bot);
+    HelpCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
+        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
     }
 
     @Override

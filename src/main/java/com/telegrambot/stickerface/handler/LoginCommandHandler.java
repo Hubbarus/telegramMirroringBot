@@ -1,37 +1,30 @@
 package com.telegrambot.stickerface.handler;
 
+import com.telegrambot.stickerface.config.BotConfig;
 import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.listener.Bot;
 import com.telegrambot.stickerface.model.BotUser;
 import com.telegrambot.stickerface.service.MirroringUrlService;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import com.vk.api.sdk.client.VkApiClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
-@Log4j2
-public class LoginCommandHandler extends AbstractHandler {
+public class LoginCommandHandler extends AbstractHandler implements BotHandler {
 
     private static final String LOGIN_REPLY_MESSAGE = "Please login by using link below.";
     private static final String LOGIN_SUCCESSFUL_REPLY_MESSAGE = "Log in successful! %s";
     private static final String LOGIN_FAILED_REPLY_MESSAGE = "Log failed! %s";
 
-    private final VkClientConfig vkClientConfig;
-
-    private final MirroringUrlService urlService;
-
-    @Autowired
-    public LoginCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, Bot bot) {
-        super(bot);
-        this.vkClientConfig = vkClientConfig;
-        this.urlService = urlService;
+    LoginCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient,
+                        Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
+        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
     }
+
 
     @Override
     public List<Message> handle(long chatId, Message message) throws TelegramApiException {

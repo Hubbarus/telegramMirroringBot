@@ -1,28 +1,25 @@
 package com.telegrambot.stickerface.handler;
 
+import com.telegrambot.stickerface.config.BotConfig;
+import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.listener.Bot;
 import com.telegrambot.stickerface.model.BotUser;
 import com.telegrambot.stickerface.service.MirroringUrlService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import com.vk.api.sdk.client.VkApiClient;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Collections;
 import java.util.List;
 
-@Component
-public class StopCommandHandler extends AbstractHandler {
+public class StopCommandHandler extends AbstractHandler implements BotHandler {
 
     private static final String STOP_SUCCESS_REPLY_MESSAGE = "Bot have stopped to polling messages";
     private static final String STOP_FAIL_REPLY_MESSAGE = "Bot doing nothing right now";
 
-    private final MirroringUrlService urlService;
-
-    @Autowired
-    public StopCommandHandler(MirroringUrlService urlService, Bot bot) {
-        super(bot);
-        this.urlService = urlService;
+    StopCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
+        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
     }
 
     @Override

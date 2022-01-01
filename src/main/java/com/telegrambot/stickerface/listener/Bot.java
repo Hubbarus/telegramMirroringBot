@@ -1,18 +1,21 @@
 package com.telegrambot.stickerface.listener;
 
 import com.telegrambot.stickerface.config.BotConfig;
+import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.dto.CommandEnum;
 import com.telegrambot.stickerface.handler.AbstractHandler;
+import com.telegrambot.stickerface.handler.BotHandler;
 import com.telegrambot.stickerface.handler.DeleteMessageHandler;
-import com.telegrambot.stickerface.handler.HandlerFactory;
 import com.telegrambot.stickerface.model.BotUser;
 import com.telegrambot.stickerface.service.MirroringUrlService;
+import com.vk.api.sdk.client.VkApiClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
@@ -24,17 +27,19 @@ public class Bot extends TelegramLongPollingBot {
 
     @Autowired
     private BotConfig botConfig;
-
-    @Autowired
-    private HandlerFactory handlerFactory;
-
     @Autowired
     private ListenerFactory factory;
-
     @Autowired
     private MirroringUrlService urlService;
+    @Autowired
+    protected VkClientConfig vkClientConfig;
+    @Autowired
+    protected VkApiClient vkApiClient;
+    @Autowired
+    protected ReplyKeyboardMarkup keyboard;
 
     private boolean isRegisterCommandCalled;
+    private boolean isDeleteCommandCalled;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -59,7 +64,8 @@ public class Bot extends TelegramLongPollingBot {
 
             log.info("Command: " + command);
 
-            AbstractHandler handler = handlerFactory.getHandler(command);
+            BotHandler handler = new AbstractHandler(vkClientConfig, urlService, vkApiClient, this, botConfig, keyboard)
+                    .getHandler(command);
             log.info("Handler chosen: " + handler.getClass());
 
             List<Message> sentMessages = handler.handle(chatId, listener.getMessage());
@@ -95,5 +101,13 @@ public class Bot extends TelegramLongPollingBot {
 
     public void setRegisterCommandCalled(boolean registerCommandCalled) {
         isRegisterCommandCalled = registerCommandCalled;
+    }
+
+    public boolean isDeleteCommandCalled() {
+        return isDeleteCommandCalled;
+    }
+
+    public void setDeleteCommandCalled(boolean deleteCommandCalled) {
+        isDeleteCommandCalled = deleteCommandCalled;
     }
 }

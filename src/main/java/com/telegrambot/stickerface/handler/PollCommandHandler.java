@@ -1,6 +1,7 @@
 package com.telegrambot.stickerface.handler;
 
 import com.telegrambot.stickerface.config.BotConfig;
+import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.listener.Bot;
 import com.telegrambot.stickerface.model.BotUser;
 import com.telegrambot.stickerface.model.VkCommunity;
@@ -13,9 +14,8 @@ import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.ArrayList;
@@ -25,23 +25,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-@Component
 @Slf4j
-public class PollCommandHandler extends AbstractHandler {
+public class PollCommandHandler extends AbstractHandler implements BotHandler {
 
     private static final String POLL_FAIL_REPLY_MESSAGE = "No url specified. Run /register command first!";
     private static final String ALREADY_POLLING_REPLY_MESSAGE = "Already polling! If you want to stop, call /stop command.";
 
-    private final MirroringUrlService urlService;
-    private final VkApiClient vkClient;
-    private final BotConfig botConfig;
-
-    @Autowired
-    public PollCommandHandler(MirroringUrlService urlService, VkApiClient vkClient, Bot bot, BotConfig botConfig) {
-        super(bot);
-        this.urlService = urlService;
-        this.vkClient = vkClient;
-        this.botConfig = botConfig;
+    PollCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
+        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
     }
 
     @Override
@@ -78,7 +69,7 @@ public class PollCommandHandler extends AbstractHandler {
     private List<PollingService> getPollingThreads(List<VkCommunity> vkCommunities, UserActor actor, int communitiesCount) {
         List<PollingService> pollingCommunityList = new ArrayList<>();
         for (VkCommunity vkCommunity : vkCommunities) {
-            pollingCommunityList.add(new PollingService(urlService, vkClient, actor, Math.negateExact(vkCommunity.getGroupId()), vkCommunity.getName(), communitiesCount));
+            pollingCommunityList.add(new PollingService(urlService, vkApiClient, actor, Math.negateExact(vkCommunity.getGroupId()), vkCommunity.getName(), communitiesCount));
         }
         return pollingCommunityList;
     }

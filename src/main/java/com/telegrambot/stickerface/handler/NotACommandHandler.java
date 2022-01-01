@@ -1,5 +1,7 @@
 package com.telegrambot.stickerface.handler;
 
+import com.telegrambot.stickerface.config.BotConfig;
+import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.handler.exception.UrlNotValidException;
 import com.telegrambot.stickerface.listener.Bot;
 import com.telegrambot.stickerface.model.BotUser;
@@ -22,7 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class NotACommandHandler extends AbstractHandler {
+public class NotACommandHandler extends AbstractHandler implements BotHandler {
 
     private static final String REGISTER_FAIL_URL_NOT_VALID_REPLY_MESSAGE = "Invalid URL: %s\n" +
             "Try again, or type \"/skip\" to abort URL registration!";
@@ -31,16 +33,10 @@ public class NotACommandHandler extends AbstractHandler {
     private static final String CHOOSE_ACTION_REPLY_MESSAGE = "Choose action from menu...";
     private static final String DEFAULT_REPLY_MESSAGE = "Please choose actions from menu.\n" +
             "Or type \"/help\" for see all actions.";
+    private static final String DELETION_SUCCESS_REPLY_MESSAGE = "Community %s was successfully deleted! ";
 
-    private final MirroringUrlService urlService;
-    private final VkApiClient vkApiClient;
-    private final ReplyKeyboardMarkup keyboard;
-
-    NotACommandHandler(Bot bot, MirroringUrlService urlService, VkApiClient vkApiClient, ReplyKeyboardMarkup keyboard) {
-        super(bot);
-        this.urlService = urlService;
-        this.vkApiClient = vkApiClient;
-        this.keyboard = keyboard;
+    NotACommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
+        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
     }
 
     @Override
@@ -49,7 +45,7 @@ public class NotACommandHandler extends AbstractHandler {
         String input = message.getText();
 
         if (input.equalsIgnoreCase("/skip")) {
-            List<KeyboardRow> keyboardRows = MenuUtil.createKeyboard();
+            List<KeyboardRow> keyboardRows = MenuUtil.createMenuKeyboard();
             keyboard.setKeyboard(keyboardRows);
             bot.setRegisterCommandCalled(false);
             return Collections.singletonList(bot.execute(getDefaultMessage(chatId, CHOOSE_ACTION_REPLY_MESSAGE, "", keyboard)));
@@ -62,6 +58,7 @@ public class NotACommandHandler extends AbstractHandler {
                 user.addVkCommunity(community);
                 urlService.saveBotUser(user);
                 bot.setRegisterCommandCalled(false);
+                return Collections.singletonList(bot.execute(getDefaultMessage(chatId, REGISTER_SUCCESS_REPLY_MESSAGE, input, null)));
             } catch (UrlNotValidException e) {
                 log.error(e.getMessage());
                 return Collections.singletonList(bot.execute(getDefaultMessage(chatId, REGISTER_FAIL_URL_NOT_VALID_REPLY_MESSAGE, input, null)));
@@ -69,11 +66,15 @@ public class NotACommandHandler extends AbstractHandler {
                 log.error(e.getMessage());
                 return Collections.singletonList(bot.execute(getDefaultMessage(chatId, e.getMessage(), "", null)));
             }
-            return Collections.singletonList(bot.execute(getDefaultMessage(chatId, REGISTER_SUCCESS_REPLY_MESSAGE, input, null)));
+        } else if (bot.isDeleteCommandCalled()) {
+            log.info("Deleting community from subscriptions list...");
+            user.getVkCommunities().removeIf(comm -> comm.getName().equalsIgnoreCase(input));
+            urlService.saveBotUser(user);
+            bot.setDeleteCommandCalled(false);
+            return Collections.singletonList(bot.execute(getDefaultMessage(chatId, DELETION_SUCCESS_REPLY_MESSAGE, input, null)));
         } else {
             deleteOwnMessage(chatId, message);
             return Collections.singletonList(bot.execute(getDefaultMessage(chatId, DEFAULT_REPLY_MESSAGE, "", null)));
-
         }
     }
 
