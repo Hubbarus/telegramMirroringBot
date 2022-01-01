@@ -8,6 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 public class DeleteMessageHandler implements Runnable {
@@ -24,7 +25,8 @@ public class DeleteMessageHandler implements Runnable {
     @Override
     public void run() {
         Thread.sleep(30000);
-        ownMessages.stream().filter(msg -> msg.getChatId() < 0)
+        Optional.ofNullable(ownMessages).ifPresent(msgs -> msgs.stream()
+                .filter(msg -> msg.getChatId() < 0)
                 .forEach(msg -> {
                     log.info("Deleting own messages from channel...");
                     DeleteMessage message = new DeleteMessage();
@@ -35,6 +37,6 @@ public class DeleteMessageHandler implements Runnable {
                     } catch (TelegramApiException e) {
                         e.printStackTrace();
                     }
-                });
+                }));
     }
 }
