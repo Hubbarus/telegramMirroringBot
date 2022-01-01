@@ -50,26 +50,26 @@ public class LoginCommandHandler extends AbstractHandler {
                         .encode()
                         .toUriString();
 
-                sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_REPLY_MESSAGE, "")));
-                Message urlMessage = bot.execute(getDefaultMessage(chatId, urlTemplate, ""));
+                sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_REPLY_MESSAGE, "", null)));
+                Message urlMessage = bot.execute(getDefaultMessage(chatId, urlTemplate, "", null));
 
                 try {
                     urlService.wait(vkClientConfig.getWaitingLoginTime());
                 } catch (InterruptedException e) {
-                    sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_FAILED_REPLY_MESSAGE, "")));
+                    sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_FAILED_REPLY_MESSAGE, "", null)));
                     Thread.currentThread().interrupt();
                 }
 
                 BotUser updatedUser = urlService.getBotUserByChatId(chatId);
 
                 if (updatedUser.isLoggedIn()) {
-                    sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_SUCCESSFUL_REPLY_MESSAGE, "")));
+                    sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_SUCCESSFUL_REPLY_MESSAGE, "", null)));
                 } else {
-                    sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_FAILED_REPLY_MESSAGE, "Maximum waiting time exceeded!")));
+                    sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_FAILED_REPLY_MESSAGE, "Maximum waiting time exceeded!", null)));
                 }
                 deleteOwnMessage(chatId, urlMessage);
             } else {
-                sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_SUCCESSFUL_REPLY_MESSAGE, "Already logged in!")));
+                sentMessages.add(bot.execute(getDefaultMessage(chatId, LOGIN_SUCCESSFUL_REPLY_MESSAGE, "Already logged in!", null)));
             }
         }
         return sentMessages;

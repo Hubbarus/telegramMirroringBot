@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
@@ -27,14 +28,17 @@ public abstract class AbstractHandler {
     public abstract List<Message> handle(long chatId, Message message) throws Exception;
 
     void deleteOwnMessage(long chatId, Message receivedMessage) throws TelegramApiException {
-        DeleteMessage deleteMessage = new DeleteMessage();
-        deleteMessage.setChatId(String.valueOf(chatId));
-        deleteMessage.setMessageId(receivedMessage.getMessageId());
-        bot.execute(deleteMessage);
+        if (receivedMessage != null) {
+            DeleteMessage deleteMessage = new DeleteMessage();
+            deleteMessage.setChatId(String.valueOf(chatId));
+            deleteMessage.setMessageId(receivedMessage.getMessageId());
+            bot.execute(deleteMessage);
+        }
     }
 
-    SendMessage getDefaultMessage(long chatId, String returnText, String extraText) {
+    SendMessage getDefaultMessage(long chatId, String returnText, String extraText, ReplyKeyboardMarkup keyboard) {
         SendMessage messageToSend = new SendMessage();
+        messageToSend.setReplyMarkup(keyboard);
         messageToSend.setChatId(String.valueOf(chatId));
         messageToSend.setText(String.format(returnText, extraText));
         return messageToSend;

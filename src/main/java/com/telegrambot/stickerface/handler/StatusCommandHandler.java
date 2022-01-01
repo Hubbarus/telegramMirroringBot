@@ -34,6 +34,6 @@ public class StatusCommandHandler extends AbstractHandler {
                 .map(name -> "'".concat(name).concat("'"))
                 .collect(Collectors.joining(", "));
 
-        return Collections.singletonList(bot.execute(getDefaultMessage(chatId, STATUS_REPLY_MESSAGE, communityString)));
+        return Collections.singletonList(bot.execute(getDefaultMessage(chatId, STATUS_REPLY_MESSAGE, communityString, null)));
     }
 }

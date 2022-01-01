@@ -9,8 +9,10 @@ public class ListenerFactory {
     AbstractListener createListener(Update update) {
         if (update.getMessage() != null) {
             return new PersonalChatListener(update);
-        } else {
+        } else if (update.getChannelPost() != null) {
             return new ChannelListener(update);
+        } else {
+            return new ServiceListener(update);
         }
     }
 }

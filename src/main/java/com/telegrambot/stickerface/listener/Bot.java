@@ -51,7 +51,8 @@ public class Bot extends TelegramLongPollingBot {
 
         try {
             String inputText = listener.getInputText();
-            CommandEnum command = CommandEnum.fromString(inputText.split(" ")[0]);
+            String commandText = inputText != null ? inputText.split(" ")[0] : "/service";
+            CommandEnum command = CommandEnum.fromString(commandText);
 
             log.info("Command: " + command);
 

@@ -52,7 +52,7 @@ public class PollCommandHandler extends AbstractHandler {
         if (user.isStopped()) {
             List<VkCommunity> vkCommunities = user.getVkCommunities();
             if (vkCommunities.isEmpty()) {
-                return Collections.singletonList(bot.execute(getDefaultMessage(chatId, POLL_FAIL_REPLY_MESSAGE, "")));
+                return Collections.singletonList(bot.execute(getDefaultMessage(chatId, POLL_FAIL_REPLY_MESSAGE, "", null)));
             }
 
             UserActor actor = getActor(user);
@@ -66,7 +66,7 @@ public class PollCommandHandler extends AbstractHandler {
 
             startScheduledTaskExecutor(pollingCommunityList, chatId);
         } else {
-            return Collections.singletonList(bot.execute(getDefaultMessage(chatId, ALREADY_POLLING_REPLY_MESSAGE, "")));
+            return Collections.singletonList(bot.execute(getDefaultMessage(chatId, ALREADY_POLLING_REPLY_MESSAGE, "", null)));
         }
         return Collections.emptyList();
     }
@@ -75,7 +75,7 @@ public class PollCommandHandler extends AbstractHandler {
         return new UserActor(Integer.parseInt(user.getUserId()), user.getToken());
     }
 
-    private List<PollingService> getPollingThreads(List<VkCommunity> vkCommunities, UserActor actor, int communitiesCount) throws ClientException, ApiException {
+    private List<PollingService> getPollingThreads(List<VkCommunity> vkCommunities, UserActor actor, int communitiesCount) {
         List<PollingService> pollingCommunityList = new ArrayList<>();
         for (VkCommunity vkCommunity : vkCommunities) {
             pollingCommunityList.add(new PollingService(urlService, vkClient, actor, Math.negateExact(vkCommunity.getGroupId()), vkCommunity.getName(), communitiesCount));

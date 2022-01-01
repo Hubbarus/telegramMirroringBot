@@ -34,9 +34,9 @@ public class StopCommandHandler extends AbstractHandler {
                 user.setStopped(true);
                 urlService.notifyAll();
                 urlService.saveBotUser(user);
-                return Collections.singletonList(bot.execute(getDefaultMessage(chatId, STOP_SUCCESS_REPLY_MESSAGE, "")));
+                return Collections.singletonList(bot.execute(getDefaultMessage(chatId, STOP_SUCCESS_REPLY_MESSAGE, "", null)));
             } else {
-                return Collections.singletonList(bot.execute(getDefaultMessage(chatId, STOP_FAIL_REPLY_MESSAGE, "")));
+                return Collections.singletonList(bot.execute(getDefaultMessage(chatId, STOP_FAIL_REPLY_MESSAGE, "", null)));
             }
         }
     }

@@ -48,7 +48,7 @@ public class RegisterCommandHandler extends AbstractHandler {
             String[] input = message.getText().split(" ");
 
             if (input.length != 2) {
-                return Collections.singletonList(bot.execute(getDefaultMessage(chatId, REGISTER_FAIL_REPLY_MESSAGE, "")));
+                return Collections.singletonList(bot.execute(getDefaultMessage(chatId, REGISTER_FAIL_REPLY_MESSAGE, "", null)));
             } else {
                 log.info("Registering url " + input[1]);
                 try {
@@ -57,15 +57,15 @@ public class RegisterCommandHandler extends AbstractHandler {
                     urlService.saveBotUser(user);
                 } catch (UrlNotValidException e) {
                     log.error(e.getMessage());
-                    return Collections.singletonList(bot.execute(getDefaultMessage(chatId, REGISTER_FAIL_URL_NOT_VALID_REPLY_MESSAGE, input[1])));
+                    return Collections.singletonList(bot.execute(getDefaultMessage(chatId, REGISTER_FAIL_URL_NOT_VALID_REPLY_MESSAGE, input[1], null)));
                 } catch (IllegalArgumentException e) {
                     log.error(e.getMessage());
-                    return Collections.singletonList(bot.execute(getDefaultMessage(chatId, e.getMessage(), "")));
+                    return Collections.singletonList(bot.execute(getDefaultMessage(chatId, e.getMessage(), "", null)));
                 }
-                return Collections.singletonList(bot.execute(getDefaultMessage(chatId, REGISTER_SUCCESS_REPLY_MESSAGE, input[1])));
+                return Collections.singletonList(bot.execute(getDefaultMessage(chatId, REGISTER_SUCCESS_REPLY_MESSAGE, input[1], null)));
             }
         } else {
-            return Collections.singletonList(bot.execute(getDefaultMessage(chatId, REGISTER_FAIL_NOT_LOGGED_IN_REPLY_MESSAGE, "")));
+            return Collections.singletonList(bot.execute(getDefaultMessage(chatId, REGISTER_FAIL_NOT_LOGGED_IN_REPLY_MESSAGE, "", null)));
         }
     }
 
@@ -77,7 +77,7 @@ public class RegisterCommandHandler extends AbstractHandler {
         String path = communityUrl.replaceAll("http.+/", "");
         if (user.getVkCommunities().stream()
                 .anyMatch(comm -> comm.getUrl().equalsIgnoreCase(path))) {
-            throw new IllegalArgumentException("Already subscribed");
+            throw new IllegalArgumentException(String.format(REGISTER_FAIL_ALREADY_SUBSCRIBED_REPLY_MESSAGE, path));
         }
 
         VkCommunity community = new VkCommunity();

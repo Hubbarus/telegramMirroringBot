@@ -8,6 +8,7 @@ import com.telegrambot.stickerface.service.MirroringUrlService;
 import com.vk.api.sdk.client.VkApiClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 @Service
 public class HandlerFactory {
@@ -17,20 +18,22 @@ public class HandlerFactory {
     private final VkApiClient vkApiClient;
     private final Bot bot;
     private final BotConfig botConfig;
+    private final ReplyKeyboardMarkup keyboard;
 
     @Autowired
-    public HandlerFactory(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig) {
+    public HandlerFactory(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
         this.vkClientConfig = vkClientConfig;
         this.urlService = urlService;
         this.vkApiClient = vkApiClient;
         this.bot = bot;
         this.botConfig = botConfig;
+        this.keyboard = keyboard;
     }
 
     public AbstractHandler getHandler(CommandEnum command) {
         switch (command) {
             case START:
-                return new StartCommandHandler(bot);
+                return new StartCommandHandler(bot, keyboard);
             case LOGIN:
                 return new LoginCommandHandler(vkClientConfig, urlService, bot);
             case REGISTER:
@@ -45,6 +48,9 @@ public class HandlerFactory {
                 return new StatusCommandHandler(bot, urlService);
             case STOP:
                 return new StopCommandHandler(urlService, bot);
+            case SERVICE:
+                return new ServiceHandler(bot);
+            case DELETE:
             default:
                 return new DefaultCommandHandler(bot);
         }

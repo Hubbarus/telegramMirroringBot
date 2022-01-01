@@ -12,9 +12,11 @@ public enum CommandEnum {
     START_POLL("/poll"),
     STOP("/stop"),
     LOGIN("/login"),
+    DELETE("/delete"),
+    SERVICE("/service"),
     NOT_A_COMMAND("default");
 
-    String value;
+    final String value;
 
     CommandEnum(String value) {
         this.value = value;

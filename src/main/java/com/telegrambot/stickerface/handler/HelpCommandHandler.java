@@ -26,6 +26,6 @@ public class HelpCommandHandler extends AbstractHandler {
     @Override
     public List<Message> handle(long chatId, Message message) throws TelegramApiException {
         deleteOwnMessage(chatId, message);
-        return Collections.singletonList(bot.execute(getDefaultMessage(chatId, HELP_REPLY_MESSAGE, "")));
+        return Collections.singletonList(bot.execute(getDefaultMessage(chatId, HELP_REPLY_MESSAGE, "", null)));
     }
 }
