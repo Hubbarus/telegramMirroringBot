@@ -37,7 +37,7 @@ public class HandlerFactory {
             case LOGIN:
                 return new LoginCommandHandler(vkClientConfig, urlService, bot);
             case REGISTER:
-                return new RegisterCommandHandler(bot, urlService, vkApiClient);
+                return new RegisterCommandHandler(bot, urlService);
             case START_POLL:
                 return new PollCommandHandler(urlService, vkApiClient, bot, botConfig);
             case HELP:
@@ -50,6 +50,8 @@ public class HandlerFactory {
                 return new StopCommandHandler(urlService, bot);
             case SERVICE:
                 return new ServiceHandler(bot);
+            case NOT_A_COMMAND:
+                return new NotACommandHandler(bot, urlService, vkApiClient, keyboard);
             case DELETE:
             default:
                 return new DefaultCommandHandler(bot);

@@ -16,6 +16,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -32,6 +33,8 @@ public class Bot extends TelegramLongPollingBot {
 
     @Autowired
     private MirroringUrlService urlService;
+
+    private boolean isRegisterCommandCalled;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -50,9 +53,9 @@ public class Bot extends TelegramLongPollingBot {
         }
 
         try {
-            String inputText = listener.getInputText();
-            String commandText = inputText != null ? inputText.split(" ")[0] : "/service";
-            CommandEnum command = CommandEnum.fromString(commandText);
+            String inputText = Optional.ofNullable(listener.getInputText())
+                    .orElse("/service");
+            CommandEnum command = CommandEnum.fromString(inputText);
 
             log.info("Command: " + command);
 
@@ -84,5 +87,13 @@ public class Bot extends TelegramLongPollingBot {
     @Override
     public String getBotToken() {
         return botConfig.getToken();
+    }
+
+    public boolean isRegisterCommandCalled() {
+        return isRegisterCommandCalled;
+    }
+
+    public void setRegisterCommandCalled(boolean registerCommandCalled) {
+        isRegisterCommandCalled = registerCommandCalled;
     }
 }
