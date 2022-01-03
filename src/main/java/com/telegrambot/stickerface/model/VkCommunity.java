@@ -12,6 +12,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
@@ -32,10 +33,34 @@ public class VkCommunity {
     @Column(name = "GRP_ID")
     private Integer groupId;
 
+    @Column(name = "LST_PST_DT")
+    private LocalDateTime lastPostedDate;
+
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "BOT_USR_TID")
     @JsonIgnore
     private BotUser botUser;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        VkCommunity community = (VkCommunity) o;
+        return Objects.equals(name, community.name) && Objects.equals(url, community.url) && Objects.equals(groupId, community.groupId) && Objects.equals(lastPostedDate, community.lastPostedDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, url, groupId, lastPostedDate);
+    }
+
+    public LocalDateTime getLastPostedDate() {
+        return lastPostedDate;
+    }
+
+    public void setLastPostedDate(LocalDateTime lastPostedDate) {
+        this.lastPostedDate = lastPostedDate;
+    }
 
     public String getName() {
         return name;
@@ -51,19 +76,6 @@ public class VkCommunity {
 
     public void setUrl(String url) {
         this.url = url;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        VkCommunity community = (VkCommunity) o;
-        return Objects.equals(name, community.name) && Objects.equals(url, community.url) && Objects.equals(groupId, community.groupId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, url, groupId);
     }
 
     public Integer getGroupId() {

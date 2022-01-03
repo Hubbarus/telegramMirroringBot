@@ -40,15 +40,15 @@ public class PostingService implements Runnable {
 
                 if (image != null) {
                     image.setChatId(chatIdString);
-                    bot.executeAsync(image);
+                    bot.execute(image);
                 } else if (mediaGroup != null) {
                     mediaGroup.setChatId(chatIdString);
-                    bot.executeAsync(mediaGroup);
+                    bot.execute(mediaGroup);
                 }
 
                 if (message != null) {
                     message.setChatId(chatIdString);
-                    bot.executeAsync(message);
+                    bot.execute(message);
                 }
             } catch (TelegramApiException e) {
                 e.printStackTrace();

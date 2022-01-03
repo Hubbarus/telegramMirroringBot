@@ -2,7 +2,9 @@ package com.telegrambot.stickerface.service;
 
 import com.telegrambot.stickerface.dto.VkMessage;
 import com.telegrambot.stickerface.model.BotUser;
+import com.telegrambot.stickerface.model.VkCommunity;
 import com.telegrambot.stickerface.repository.BotUserRepository;
+import com.telegrambot.stickerface.repository.VkCommunityRepository;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +18,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class MirroringUrlService {
 
     private static final String URL_VALIDATION_REGEX = "((([A-Za-z]{3,9}:(?://)?)(?:[-;:&=+$,\\w]+@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=+$,\\w]+@)[A-Za-z0-9.-]+)((?:/[+~%/.\\w\\-_]*)?\\??(?:[-+=&;%@.\\w_]*)#?(?:[\\w]*))?)";
-    private final BotUserRepository repository;
+    private final BotUserRepository botUserRepository;
+    private final VkCommunityRepository communityRepository;
     protected ConcurrentLinkedQueue<VkMessage> messageQueue = new ConcurrentLinkedQueue<>();
 
     @Autowired
-    public MirroringUrlService(BotUserRepository repository) {
-        this.repository = repository;
+    public MirroringUrlService(BotUserRepository botUserRepository, VkCommunityRepository communityRepository) {
+        this.botUserRepository = botUserRepository;
+        this.communityRepository = communityRepository;
     }
 
     public boolean isUrlValid(String urlToValidate) {
@@ -29,10 +33,14 @@ public class MirroringUrlService {
     }
 
     public BotUser getBotUserByChatId(Long chatId) {
-        return repository.findByChatId(chatId);
+        return botUserRepository.findByChatId(chatId);
     }
 
     public void saveBotUser(BotUser user) {
-        repository.save(user);
+        botUserRepository.save(user);
+    }
+
+    public void saveCommunity(VkCommunity community) {
+        communityRepository.save(community);
     }
 }

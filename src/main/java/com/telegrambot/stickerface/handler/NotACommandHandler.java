@@ -78,7 +78,8 @@ public class NotACommandHandler extends AbstractHandler implements BotHandler {
         }
     }
 
-    private VkCommunity validateAndCreateCommunity(String communityUrl, BotUser user) throws UrlNotValidException, ClientException, ApiException {
+    private VkCommunity validateAndCreateCommunity(String communityUrl, BotUser user) throws UrlNotValidException,
+            ClientException, ApiException {
         if (!urlService.isUrlValid(communityUrl)) {
             throw new UrlNotValidException("Url not valid: " + communityUrl);
         }
@@ -117,7 +118,7 @@ public class NotACommandHandler extends AbstractHandler implements BotHandler {
                 .orElseThrow(() -> new IllegalArgumentException("Problems getting groupId, may be you are not a group member?"));
 
         community.setName(group.getName());
-        community.setGroupId(group.getId());
+        community.setGroupId(Math.negateExact(group.getId()));
     }
 
     private UserActor getActor(BotUser user) {

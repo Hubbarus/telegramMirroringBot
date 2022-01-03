@@ -25,6 +25,7 @@ bot:
   initial-posting-delay: ${BOT_POST_DELAY}
   polling-period: ${BOT_POLL_PERIOD}
   posting-period: ${BOT_POST_PERIOD}
+  posts-delay-hours: ${BOT_POSTS_DELAY_HOURS}
 
 vk:
   app-id: 8030150

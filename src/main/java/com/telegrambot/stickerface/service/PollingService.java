@@ -1,6 +1,9 @@
 package com.telegrambot.stickerface.service;
 
+import com.telegrambot.stickerface.config.BotConfig;
 import com.telegrambot.stickerface.dto.VkMessage;
+import com.telegrambot.stickerface.model.BotUser;
+import com.telegrambot.stickerface.model.VkCommunity;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.objects.photos.Photo;
@@ -25,14 +28,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -45,20 +50,33 @@ public class PollingService implements Runnable {
     private final Integer groupId;
     private final String groupName;
     private final int communitiesCount;
-    private ZonedDateTime lastDateTime = ZonedDateTime.now().minusHours(48);
+    private final BotUser user;
+    private final BotConfig botConfig;
 
-    public PollingService(MirroringUrlService urlService, VkApiClient vkApiClient, UserActor actor, Integer groupId, String groupName, int communitiesCount) {
+    public PollingService(MirroringUrlService urlService, VkApiClient vkApiClient, UserActor actor,
+                          VkCommunity community, int communitiesCount, BotUser user, BotConfig botConfig) {
         this.urlService = urlService;
         this.vkApiClient = vkApiClient;
         this.actor = actor;
-        this.groupId = groupId;
-        this.groupName = groupName;
+        this.groupId = community.getGroupId();
+        this.groupName = community.getName();
         this.communitiesCount = communitiesCount;
+        this.user = user;
+        this.botConfig = botConfig;
     }
 
     @Override
     public void run() {
         log.info("Requesting host...");
+        Optional<VkCommunity> communityOptional = user.getVkCommunities().stream()
+                .filter(comm -> comm.getGroupId().equals(groupId))
+                .findFirst();
+
+        AtomicReference<LocalDateTime> initialDelay = communityOptional.map(VkCommunity::getLastPostedDate)
+                .map(lastDate -> lastDate.plus(1, ChronoUnit.SECONDS))
+                .map(AtomicReference::new)
+                .orElse(new AtomicReference<>(LocalDateTime.now().minusHours(botConfig.getPostsDelayHours())));
+
         try {
             com.vk.api.sdk.objects.wall.responses.GetResponse wallPosts = vkApiClient
                     .wall()
@@ -69,8 +87,9 @@ public class PollingService implements Runnable {
 
             List<WallpostFull> dateFilteredPosts = wallPosts.getItems().stream()
                     .filter(post -> {
-                        ZonedDateTime dateTime = Instant.ofEpochSecond(post.getDate()).atZone(ZoneId.of("Europe/Moscow"));
-                        return dateTime.isAfter(lastDateTime);
+                        LocalDateTime dateTime = Instant.ofEpochSecond(post.getDate())
+                                .atZone(ZoneId.of("Europe/Moscow")).toLocalDateTime();
+                        return dateTime.isAfter(initialDelay.get());
                     })
                     .collect(Collectors.toList());
 
@@ -82,10 +101,19 @@ public class PollingService implements Runnable {
                         urlService.getMessageQueue().add(vkMessage);
                         newMessagesCount.getAndIncrement();
 
-                        log.info("Last polled post was in: " + lastDateTime.toLocalDateTime() + ". Now will be updated!");
-                        lastDateTime = convertDate(post.getDate());
+                        log.info("Last polled post was in: " + initialDelay.get() + ". Now will be updated!");
+                        initialDelay.set(convertDate(post.getDate()));
                     });
 
+            if (communityOptional.isPresent()) {
+                VkCommunity community = communityOptional.get();
+                if (community.getLastPostedDate() == null || community.getLastPostedDate().isBefore(initialDelay.get())) {
+                    community.setLastPostedDate(initialDelay.get());
+                    urlService.saveCommunity(community);
+                }
+            }
+
+            log.info("Polling succesfully finished!");
             int count = newMessagesCount.get();
             if (count != 0) {
                 log.info("New messages polled from '" + groupName + "': " + count);
@@ -101,7 +129,7 @@ public class PollingService implements Runnable {
         log.info("Creating message from '" + groupName + "' community...");
         VkMessage vkMessage = new VkMessage();
         vkMessage.setCommunityName(groupName);
-        vkMessage.setPostDate(convertDate(post.getDate()).toLocalDateTime());
+        vkMessage.setPostDate(convertDate(post.getDate()));
         String postText = formatPostText(post.getText());
 
         List<WallpostAttachment> attachments = post.getAttachments();
@@ -148,13 +176,13 @@ public class PollingService implements Runnable {
         SendMediaGroup group = new SendMediaGroup();
         List<InputMedia> medias = new ArrayList<>();
 
-        for (WallpostAttachment att : attachments) {
-            if (att.getType().equals(WallpostAttachmentType.PHOTO)) {
-                Optional<InputMedia> inputMedia = createGroupPhotoAttachment(att);
-                inputMedia.ifPresent(medias::add);
-            }
-            //TODO add video support
-        }
+        attachments.stream()
+                .filter(att -> att.getType().equals(WallpostAttachmentType.PHOTO))
+                .map(this::createGroupPhotoAttachment)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .forEach(medias::add);
+        //TODO add video support
 
         if (postText != null && !postText.isEmpty() && !medias.isEmpty()) {
             if (postText.length() >= 200) {
@@ -224,8 +252,8 @@ public class PollingService implements Runnable {
         }
     }
 
-    private ZonedDateTime convertDate(Integer date) {
-        return Instant.ofEpochSecond(date).atZone(ZoneId.of("Europe/Moscow"));
+    private LocalDateTime convertDate(Integer date) {
+        return Instant.ofEpochSecond(date).atZone(ZoneId.of("Europe/Moscow")).toLocalDateTime();
     }
 
     private String formatPostText(String postText) {

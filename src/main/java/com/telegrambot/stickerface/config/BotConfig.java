@@ -13,6 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 @Setter
 public class BotConfig {
 
+    private long postsDelayHours;
     private String name;
     private String token;
     private int initialPollingDelay;

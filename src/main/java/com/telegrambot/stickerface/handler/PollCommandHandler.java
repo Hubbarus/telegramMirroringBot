@@ -31,7 +31,8 @@ public class PollCommandHandler extends AbstractHandler implements BotHandler {
     private static final String POLL_FAIL_REPLY_MESSAGE = "No url specified. Run /register command first!";
     private static final String ALREADY_POLLING_REPLY_MESSAGE = "Already polling! If you want to stop, call /stop command.";
 
-    PollCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
+    PollCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient,
+                       Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
         super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
     }
 
@@ -49,7 +50,7 @@ public class PollCommandHandler extends AbstractHandler implements BotHandler {
             UserActor actor = getActor(user);
 
             log.info("Creating threads to post and poll...");
-            List<PollingService> pollingCommunityList = getPollingThreads(vkCommunities, actor, vkCommunities.size());
+            List<PollingService> pollingCommunityList = getPollingThreads(user, actor, vkCommunities.size());
 
             log.info("Starting polling, posting and checking threads...");
             user.setStopped(false);
@@ -66,10 +67,11 @@ public class PollCommandHandler extends AbstractHandler implements BotHandler {
         return new UserActor(Integer.parseInt(user.getUserId()), user.getToken());
     }
 
-    private List<PollingService> getPollingThreads(List<VkCommunity> vkCommunities, UserActor actor, int communitiesCount) {
+    private List<PollingService> getPollingThreads(BotUser user, UserActor actor, int communitiesCount) {
         List<PollingService> pollingCommunityList = new ArrayList<>();
-        for (VkCommunity vkCommunity : vkCommunities) {
-            pollingCommunityList.add(new PollingService(urlService, vkApiClient, actor, Math.negateExact(vkCommunity.getGroupId()), vkCommunity.getName(), communitiesCount));
+        for (VkCommunity vkCommunity : user.getVkCommunities()) {
+            pollingCommunityList.add(new PollingService(urlService, vkApiClient, actor,
+                    vkCommunity, communitiesCount, user, botConfig));
         }
         return pollingCommunityList;
     }
