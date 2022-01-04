@@ -132,8 +132,10 @@ public class PollingService implements Runnable {
         vkMessage.setPostDate(convertDate(post.getDate()));
         String postText = formatPostText(post.getText());
 
-        List<WallpostAttachment> attachments = post.getAttachments();
-        if (attachments != null && !attachments.isEmpty()) {
+        List<WallpostAttachment> attachments = post.getAttachments().stream()
+                .filter(att -> att.getType().equals(WallpostAttachmentType.PHOTO))
+                .collect(Collectors.toList());
+        if (!attachments.isEmpty()) {
             if (attachments.size() > 1) {
                 log.info("WallPost has multiple attachments.");
                 createMediaGroup(attachments, postText, vkMessage);
@@ -153,7 +155,7 @@ public class PollingService implements Runnable {
         SendPhoto image = new SendPhoto();
 
         if (attachment.getType().equals(WallpostAttachmentType.PHOTO)) {
-            Optional<InputFile> photoAttachment = createSinglePhotoAttachment(attachment);
+            Optional<InputFile> photoAttachment = createInputFile(attachment);
             photoAttachment.ifPresent(image::setPhoto);
 
             if (postText != null && !postText.isEmpty()) {
@@ -178,7 +180,7 @@ public class PollingService implements Runnable {
 
         attachments.stream()
                 .filter(att -> att.getType().equals(WallpostAttachmentType.PHOTO))
-                .map(this::createGroupPhotoAttachment)
+                .map(this::createInputMedia)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .forEach(medias::add);
@@ -202,7 +204,7 @@ public class PollingService implements Runnable {
         }
     }
 
-    private Optional<InputMedia> createGroupPhotoAttachment(WallpostAttachment att) {
+    private Optional<InputMedia> createInputMedia(WallpostAttachment att) {
         Photo photo = att.getPhoto();
         return photo.getSizes().stream()
                 .max(Comparator.comparing(PhotoSizes::getHeight))
@@ -221,7 +223,7 @@ public class PollingService implements Runnable {
                 });
     }
 
-    private Optional<InputFile> createSinglePhotoAttachment(WallpostAttachment att) {
+    private Optional<InputFile> createInputFile(WallpostAttachment att) {
         Photo photo = att.getPhoto();
         return photo.getSizes().stream()
                 .max(Comparator.comparing(PhotoSizes::getHeight))

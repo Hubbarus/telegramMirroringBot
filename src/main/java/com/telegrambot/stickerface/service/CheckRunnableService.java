@@ -34,6 +34,10 @@ public class CheckRunnableService implements Runnable {
                         }
                     } else {
                         log.info("User have called /stop command. Shutting down threads!");
+                        user.getVkCommunities().forEach(comm -> {
+                            comm.setPollStarted(false);
+                            urlService.saveCommunity(comm);
+                        });
                         executorService.shutdown();
                         isNotified = true;
                         urlService.saveBotUser(user);

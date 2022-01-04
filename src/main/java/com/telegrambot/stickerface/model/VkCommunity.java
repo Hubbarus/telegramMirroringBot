@@ -36,23 +36,13 @@ public class VkCommunity {
     @Column(name = "LST_PST_DT")
     private LocalDateTime lastPostedDate;
 
+    @Column(name = "IS_PLL_STRTD")
+    private boolean isPollStarted;
+
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "BOT_USR_TID")
     @JsonIgnore
     private BotUser botUser;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        VkCommunity community = (VkCommunity) o;
-        return Objects.equals(name, community.name) && Objects.equals(url, community.url) && Objects.equals(groupId, community.groupId) && Objects.equals(lastPostedDate, community.lastPostedDate);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, url, groupId, lastPostedDate);
-    }
 
     public LocalDateTime getLastPostedDate() {
         return lastPostedDate;
@@ -94,4 +84,24 @@ public class VkCommunity {
         this.botUser = botUser;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        VkCommunity community = (VkCommunity) o;
+        return isPollStarted == community.isPollStarted && Objects.equals(name, community.name) && Objects.equals(url, community.url) && Objects.equals(groupId, community.groupId) && Objects.equals(lastPostedDate, community.lastPostedDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, url, groupId, lastPostedDate, isPollStarted);
+    }
+
+    public boolean isPollStarted() {
+        return isPollStarted;
+    }
+
+    public void setPollStarted(boolean pollStarted) {
+        isPollStarted = pollStarted;
+    }
 }

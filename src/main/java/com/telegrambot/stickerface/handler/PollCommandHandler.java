@@ -21,15 +21,15 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class PollCommandHandler extends AbstractHandler implements BotHandler {
 
     private static final String POLL_FAIL_REPLY_MESSAGE = "No url specified. Run /register command first!";
-    private static final String ALREADY_POLLING_REPLY_MESSAGE = "Already polling! If you want to stop, call /stop command.";
+
+    private ScheduledThreadPoolExecutor executor;
 
     PollCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient,
                        Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
@@ -41,25 +41,21 @@ public class PollCommandHandler extends AbstractHandler implements BotHandler {
         deleteOwnMessage(chatId, message);
         BotUser user = urlService.getBotUserByChatId(chatId);
 
-        if (user.isStopped()) {
-            List<VkCommunity> vkCommunities = user.getVkCommunities();
-            if (vkCommunities.isEmpty()) {
-                return Collections.singletonList(bot.execute(getDefaultMessage(chatId, POLL_FAIL_REPLY_MESSAGE, "", null)));
-            }
-
-            UserActor actor = getActor(user);
-
-            log.info("Creating threads to post and poll...");
-            List<PollingService> pollingCommunityList = getPollingThreads(user, actor, vkCommunities.size());
-
-            log.info("Starting polling, posting and checking threads...");
-            user.setStopped(false);
-            urlService.saveBotUser(user);
-
-            startScheduledTaskExecutor(pollingCommunityList, chatId);
-        } else {
-            return Collections.singletonList(bot.execute(getDefaultMessage(chatId, ALREADY_POLLING_REPLY_MESSAGE, "", null)));
+        List<VkCommunity> vkCommunities = user.getVkCommunities();
+        if (vkCommunities.isEmpty()) {
+            return Collections.singletonList(bot.execute(getDefaultMessage(chatId, POLL_FAIL_REPLY_MESSAGE, "", null)));
         }
+
+        UserActor actor = getActor(user);
+
+        log.info("Creating threads to post and poll...");
+        List<PollingService> pollingCommunityList = getPollingThreads(user, actor, vkCommunities.size());
+
+        log.info("Starting polling, posting and checking threads...");
+        user.setStopped(false);
+        urlService.saveBotUser(user);
+
+        startScheduledTaskExecutor(pollingCommunityList, chatId);
         return Collections.emptyList();
     }
 
@@ -70,23 +66,36 @@ public class PollCommandHandler extends AbstractHandler implements BotHandler {
     private List<PollingService> getPollingThreads(BotUser user, UserActor actor, int communitiesCount) {
         List<PollingService> pollingCommunityList = new ArrayList<>();
         for (VkCommunity vkCommunity : user.getVkCommunities()) {
-            pollingCommunityList.add(new PollingService(urlService, vkApiClient, actor,
-                    vkCommunity, communitiesCount, user, botConfig));
+            if (!vkCommunity.isPollStarted()) {
+                pollingCommunityList.add(new PollingService(urlService, vkApiClient, actor,
+                        vkCommunity, communitiesCount, user, botConfig));
+                vkCommunity.setPollStarted(true);
+                urlService.saveCommunity(vkCommunity);
+            }
         }
         return pollingCommunityList;
     }
 
     private void startScheduledTaskExecutor(List<PollingService> pollingCommunityList, long chatId) {
-        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(pollingCommunityList.size() + 2);
+        int corePoolSize = pollingCommunityList.size() + 2;
+        if (executor == null || !executor.isShutdown() || !executor.isTerminated() || !executor.isTerminating()) {
+            log.info("Creating thread executor...");
+            executor = new ScheduledThreadPoolExecutor(corePoolSize);
 
-        for (PollingService pollingService : pollingCommunityList) {
-            executorService.scheduleAtFixedRate(pollingService, botConfig.getInitialPollingDelay(), botConfig.getPollingPeriod(), TimeUnit.SECONDS);
+            CheckRunnableService checkService = new CheckRunnableService(chatId, executor, urlService);
+            PostingService postingService = new PostingService(chatId, bot, urlService);
+
+            executor.schedule(checkService, 5, TimeUnit.SECONDS);
+            executor.scheduleAtFixedRate(postingService, botConfig.getInitialPostingDelay(), botConfig.getPostingPeriod(), TimeUnit.SECONDS);
+        } else {
+            log.info(String.format("Updating thread executor's pool size from %s to %s", executor.getCorePoolSize(),
+                    executor.getCorePoolSize() + corePoolSize));
+            executor.setCorePoolSize(executor.getCorePoolSize() + corePoolSize);
         }
 
-        CheckRunnableService checkService = new CheckRunnableService(chatId, executorService, urlService);
-        PostingService postingService = new PostingService(chatId, bot, urlService);
+        for (PollingService pollingService : pollingCommunityList) {
+            executor.scheduleAtFixedRate(pollingService, botConfig.getInitialPollingDelay(), botConfig.getPollingPeriod(), TimeUnit.SECONDS);
+        }
 
-        executorService.scheduleAtFixedRate(postingService, botConfig.getInitialPostingDelay(), botConfig.getPostingPeriod(), TimeUnit.SECONDS);
-        executorService.schedule(checkService, 5, TimeUnit.SECONDS);
     }
 }

@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @Getter
 public class MirroringUrlService {
 
-    private static final String URL_VALIDATION_REGEX = "((([A-Za-z]{3,9}:(?://)?)(?:[-;:&=+$,\\w]+@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=+$,\\w]+@)[A-Za-z0-9.-]+)((?:/[+~%/.\\w\\-_]*)?\\??(?:[-+=&;%@.\\w_]*)#?(?:[\\w]*))?)";
+    private static final String URL_VALIDATION_REGEX = "^(?:http(s)?://)?(vk.com|vkontakte.ru)+/[^/]*$";
     private final BotUserRepository botUserRepository;
     private final VkCommunityRepository communityRepository;
     protected ConcurrentLinkedQueue<VkMessage> messageQueue = new ConcurrentLinkedQueue<>();
