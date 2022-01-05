@@ -13,6 +13,7 @@ import com.vk.api.sdk.objects.wall.WallpostAttachment;
 import com.vk.api.sdk.objects.wall.WallpostAttachmentType;
 import com.vk.api.sdk.objects.wall.WallpostFull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -20,13 +21,11 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.media.InputMedia;
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -243,10 +242,10 @@ public class PollingService implements Runnable {
     }
 
     private InputStream readAndConvertImage(URI imageUrl) {
-        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-            BufferedImage read = ImageIO.read(imageUrl.toURL());
-            ImageIO.write(read, "jpeg", os);
-            return new ByteArrayInputStream(os.toByteArray());
+        try {
+            URL url = imageUrl.toURL();
+            byte[] buf = IOUtils.toByteArray(url);
+            return new ByteArrayInputStream(buf);
         } catch (IOException ex) {
             log.error("Error reading file!");
             ex.printStackTrace();
