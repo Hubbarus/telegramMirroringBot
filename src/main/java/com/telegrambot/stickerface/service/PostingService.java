@@ -33,7 +33,8 @@ public class PostingService implements Runnable {
         if (messageFromQueue != null) {
             SendPhoto image = messageFromQueue.getImage();
             SendMediaGroup mediaGroup = messageFromQueue.getMediaGroup();
-            SendMessage message = messageFromQueue.getMessage();
+            SendMessage messageCaption = messageFromQueue.getMessageCaption();
+            SendMessage notPhotoMessage = messageFromQueue.getNotPhotoMessage();
 
             try {
                 log.info("Posting message from queue to chat...");
@@ -41,18 +42,25 @@ public class PostingService implements Runnable {
                 if (image != null) {
                     image.setChatId(chatIdString);
                     bot.execute(image);
+                    addCaptionIfExists(messageCaption, chatIdString);
                 } else if (mediaGroup != null) {
                     mediaGroup.setChatId(chatIdString);
                     bot.execute(mediaGroup);
-                }
-
-                if (message != null) {
-                    message.setChatId(chatIdString);
-                    bot.execute(message);
+                    addCaptionIfExists(messageCaption, chatIdString);
+                } else if (notPhotoMessage != null) {
+                    notPhotoMessage.setChatId(chatIdString);
+                    bot.execute(notPhotoMessage);
                 }
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void addCaptionIfExists(SendMessage messageCaption, String chatIdString) throws TelegramApiException {
+        if (messageCaption != null) {
+            messageCaption.setChatId(chatIdString);
+            bot.execute(messageCaption);
         }
     }
 }

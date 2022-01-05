@@ -6,12 +6,15 @@ import com.telegrambot.stickerface.model.BotUser;
 import com.telegrambot.stickerface.model.VkCommunity;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.UserActor;
+import com.vk.api.sdk.exceptions.ApiException;
+import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.photos.Photo;
 import com.vk.api.sdk.objects.photos.PhotoSizes;
 import com.vk.api.sdk.objects.wall.Wallpost;
 import com.vk.api.sdk.objects.wall.WallpostAttachment;
 import com.vk.api.sdk.objects.wall.WallpostAttachmentType;
 import com.vk.api.sdk.objects.wall.WallpostFull;
+import com.vk.api.sdk.objects.wall.responses.GetResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
@@ -43,6 +46,8 @@ import java.util.stream.Collectors;
 public class PollingService implements Runnable {
 
     private static final String UP_ARROW_EMOJI = new String(Character.toChars(0x2B06));
+    public static final String VK_DIRECT_GROUP_URL = "https://vk.com/wall%s_%s";
+
     private final MirroringUrlService urlService;
     private final VkApiClient vkApiClient;
     private final UserActor actor;
@@ -71,26 +76,10 @@ public class PollingService implements Runnable {
                 .filter(comm -> comm.getGroupId().equals(groupId))
                 .findFirst();
 
-        AtomicReference<LocalDateTime> initialDelay = communityOptional.map(VkCommunity::getLastPostedDate)
-                .map(lastDate -> lastDate.plus(1, ChronoUnit.SECONDS))
-                .map(AtomicReference::new)
-                .orElse(new AtomicReference<>(LocalDateTime.now().minusHours(botConfig.getPostsDelayHours())));
+        AtomicReference<LocalDateTime> initialDelay = getInitialPostingDelay(communityOptional);
 
         try {
-            com.vk.api.sdk.objects.wall.responses.GetResponse wallPosts = vkApiClient
-                    .wall()
-                    .get(actor)
-                    .ownerId(groupId)
-                    .count(50)
-                    .execute();
-
-            List<WallpostFull> dateFilteredPosts = wallPosts.getItems().stream()
-                    .filter(post -> {
-                        LocalDateTime dateTime = Instant.ofEpochSecond(post.getDate())
-                                .atZone(ZoneId.of("Europe/Moscow")).toLocalDateTime();
-                        return dateTime.isAfter(initialDelay.get());
-                    })
-                    .collect(Collectors.toList());
+            List<WallpostFull> dateFilteredPosts = getAndFilterWallPosts(initialDelay);
 
             AtomicInteger newMessagesCount = new AtomicInteger();
             dateFilteredPosts.stream().filter(Objects::nonNull)
@@ -124,6 +113,30 @@ public class PollingService implements Runnable {
         }
     }
 
+    private List<WallpostFull> getAndFilterWallPosts(AtomicReference<LocalDateTime> initialDelay) throws ClientException, ApiException {
+        GetResponse response = vkApiClient
+                .wall()
+                .get(actor)
+                .ownerId(groupId)
+                .count(50)
+                .execute();
+
+        return response.getItems().stream()
+                .filter(post -> {
+                    LocalDateTime dateTime = Instant.ofEpochSecond(post.getDate())
+                            .atZone(ZoneId.of("Europe/Moscow")).toLocalDateTime();
+                    return dateTime.isAfter(initialDelay.get());
+                })
+                .collect(Collectors.toList());
+    }
+
+    private AtomicReference<LocalDateTime> getInitialPostingDelay(Optional<VkCommunity> communityOptional) {
+        return communityOptional.map(VkCommunity::getLastPostedDate)
+                .map(lastDate -> lastDate.plus(1, ChronoUnit.SECONDS))
+                .map(AtomicReference::new)
+                .orElse(new AtomicReference<>(LocalDateTime.now().minusHours(botConfig.getPostsDelayHours())));
+    }
+
     private VkMessage createVkMessage(WallpostFull post) {
         log.info("Creating message from '" + groupName + "' community...");
         VkMessage vkMessage = new VkMessage();
@@ -131,66 +144,68 @@ public class PollingService implements Runnable {
         vkMessage.setPostDate(convertDate(post.getDate()));
         String postText = formatPostText(post.getText());
 
-        List<WallpostAttachment> attachments = post.getAttachments().stream()
-                .filter(att -> att.getType().equals(WallpostAttachmentType.PHOTO))
-                .collect(Collectors.toList());
-        if (!attachments.isEmpty()) {
-            if (attachments.size() > 1) {
+        List<WallpostAttachment> attachments = Optional.ofNullable(post.getAttachments())
+                .orElseGet(() -> post.getCopyHistory()
+                        .stream()
+                        .map(Wallpost::getAttachments)
+                        .findFirst()
+                        .orElse(null));
+        if (attachments != null && !attachments.isEmpty()) {
+            if (attachments.size() > 1 && attachments.stream()
+                    .filter(att -> att.getType().equals(WallpostAttachmentType.PHOTO))
+                    .count() != 1) {
                 log.info("WallPost has multiple attachments.");
-                createMediaGroup(attachments, postText, vkMessage);
-            } else {
+                createMediaGroup(attachments, postText, vkMessage, post);
+            } else if (attachments.size() == 1) {
                 log.info("WallPost has only one attachment.");
-                createSingleMedia(attachments.get(0), postText, vkMessage);
+                createSingleMedia(attachments.get(0), postText, vkMessage, post);
+            } else {
+                attachments.forEach(att -> createSingleMedia(att, postText, vkMessage, post));
             }
         } else {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setText(postText);
-            vkMessage.setMessage(sendMessage);
+            vkMessage.setNotPhotoMessage(sendMessage);
         }
         return vkMessage;
     }
 
-    private void createSingleMedia(WallpostAttachment attachment, String postText, VkMessage vkMessage) {
-        SendPhoto image = new SendPhoto();
-
+    private void createSingleMedia(WallpostAttachment attachment, String postText, VkMessage vkMessage, WallpostFull post) {
         if (attachment.getType().equals(WallpostAttachmentType.PHOTO)) {
+            SendPhoto image = new SendPhoto();
+
             Optional<InputFile> photoAttachment = createInputFile(attachment);
             photoAttachment.ifPresent(image::setPhoto);
 
             if (postText != null && !postText.isEmpty()) {
                 if (postText.length() >= 200) {
-                    log.info("Too long post, will be set to separate message.");
-                    SendMessage message = new SendMessage();
-                    message.setText(UP_ARROW_EMOJI.concat(postText));
-                    vkMessage.setMessage(message);
+                    createSeparateMessage(postText, vkMessage);
                 } else {
                     image.setCaption(postText);
                 }
             }
 
             vkMessage.setImage(image);
+        } else {
+            setDirectLinkToWallPost(vkMessage, post.getId());
         }
-        //TODO add video support
     }
 
-    private void createMediaGroup(List<WallpostAttachment> attachments, String postText, VkMessage vkMessage) {
+    private void createMediaGroup(List<WallpostAttachment> attachments, String postText, VkMessage vkMessage, WallpostFull post) {
         SendMediaGroup group = new SendMediaGroup();
         List<InputMedia> medias = new ArrayList<>();
 
-        attachments.stream()
-                .filter(att -> att.getType().equals(WallpostAttachmentType.PHOTO))
-                .map(this::createInputMedia)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .forEach(medias::add);
-        //TODO add video support
+        for (WallpostAttachment attachment : attachments) {
+            if (attachment.getType().equals(WallpostAttachmentType.PHOTO)) {
+                createInputMedia(attachment).ifPresent(medias::add);
+            } else {
+                setDirectLinkToWallPost(vkMessage, post.getId());
+            }
+        }
 
         if (postText != null && !postText.isEmpty() && !medias.isEmpty()) {
             if (postText.length() >= 200) {
-                log.info("Too long post, will be set to separate message.");
-                SendMessage message = new SendMessage();
-                message.setText(UP_ARROW_EMOJI.concat(postText));
-                vkMessage.setMessage(message);
+                createSeparateMessage(postText, vkMessage);
             } else {
                 InputMedia media = medias.get(0);
                 media.setCaption(postText);
@@ -259,5 +274,19 @@ public class PollingService implements Runnable {
 
     private String formatPostText(String postText) {
         return communitiesCount > 1 ? "\t\t".concat(groupName).concat("\n\n").concat(postText) : postText;
+    }
+
+    private void createSeparateMessage(String postText, VkMessage vkMessage) {
+        log.info("Too long post, will be set to separate message.");
+        SendMessage message = new SendMessage();
+        message.setText(UP_ARROW_EMOJI.concat(postText));
+        vkMessage.setMessageCaption(message);
+    }
+
+    private void setDirectLinkToWallPost(VkMessage vkMessage, Integer postId) {
+        SendMessage message = new SendMessage();
+        String postUrl = String.format(VK_DIRECT_GROUP_URL, groupId, postId);
+        message.setText(postUrl);
+        vkMessage.setNotPhotoMessage(message);
     }
 }

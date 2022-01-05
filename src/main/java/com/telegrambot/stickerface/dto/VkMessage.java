@@ -16,7 +16,9 @@ public class VkMessage {
 
     private SendPhoto image;
 
-    private SendMessage message;
+    private SendMessage messageCaption;
+
+    private SendMessage notPhotoMessage;
 
     private LocalDateTime postDate;
 
