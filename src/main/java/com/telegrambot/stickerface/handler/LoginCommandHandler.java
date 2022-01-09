@@ -1,7 +1,6 @@
 package com.telegrambot.stickerface.handler;
 
 import com.telegrambot.stickerface.config.BotConfig;
-import com.telegrambot.stickerface.config.HerokuConfig;
 import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.listener.Bot;
 import com.telegrambot.stickerface.model.BotUser;
@@ -27,8 +26,8 @@ public class LoginCommandHandler extends AbstractHandler implements BotHandler {
     private static final String LOGIN_FAILED_REPLY_MESSAGE = "Log failed! %s";
 
     LoginCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient,
-                        Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard, HerokuConfig herokuConfig) {
-        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, herokuConfig);
+                        Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
+        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
     }
 
 

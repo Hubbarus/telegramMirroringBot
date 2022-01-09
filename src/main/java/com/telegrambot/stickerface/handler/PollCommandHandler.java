@@ -1,7 +1,6 @@
 package com.telegrambot.stickerface.handler;
 
 import com.telegrambot.stickerface.config.BotConfig;
-import com.telegrambot.stickerface.config.HerokuConfig;
 import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.listener.Bot;
 import com.telegrambot.stickerface.model.BotUser;
@@ -15,16 +14,10 @@ import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,8 +32,8 @@ public class PollCommandHandler extends AbstractHandler implements BotHandler {
     private ScheduledThreadPoolExecutor executor;
 
     PollCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient,
-                       Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard, HerokuConfig herokuConfig) {
-        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, herokuConfig);
+                       Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
+        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
     }
 
     @Override
@@ -84,7 +77,7 @@ public class PollCommandHandler extends AbstractHandler implements BotHandler {
     }
 
     private void startScheduledTaskExecutor(List<PollingService> pollingCommunityList, long chatId) {
-        int corePoolSize = pollingCommunityList.size() + 3; //replace with 2 if not heroku
+        int corePoolSize = pollingCommunityList.size() + 2;
         if (executor == null || !executor.isShutdown() || !executor.isTerminated() || !executor.isTerminating()) {
             log.info("Creating thread executor...");
             executor = new ScheduledThreadPoolExecutor(corePoolSize);
@@ -92,15 +85,6 @@ public class PollCommandHandler extends AbstractHandler implements BotHandler {
             CheckRunnableService checkService = new CheckRunnableService(chatId, executor, urlService);
             PostingService postingService = new PostingService(chatId, bot, urlService);
 
-            executor.scheduleAtFixedRate(() -> {
-                RestTemplate restTemplate = new RestTemplate();
-                HttpEntity<String> request = new HttpEntity<>("Trigger!");
-                try {
-                    ResponseEntity<String> exchange = restTemplate.exchange(new URI(herokuConfig.getLifecheckUrl()), HttpMethod.POST, request, String.class);
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
-                }
-            }, herokuConfig.getLifecheckDelay(), herokuConfig.getLifecheckPeriod(), TimeUnit.SECONDS);
             executor.schedule(checkService, 5, TimeUnit.SECONDS);
             executor.scheduleAtFixedRate(postingService, botConfig.getInitialPostingDelay(), botConfig.getPostingPeriod(), TimeUnit.SECONDS);
         } else {

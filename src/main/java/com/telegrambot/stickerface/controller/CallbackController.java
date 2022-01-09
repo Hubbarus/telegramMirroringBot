@@ -49,7 +49,7 @@ public class CallbackController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping("/heathCheck")
+    @PostMapping("/healthCheck")
     public ResponseEntity<String> healthCheck(@RequestBody String request) {
         log.info("In health check...");
         return new ResponseEntity<>("Health check passed!", HttpStatus.OK);
