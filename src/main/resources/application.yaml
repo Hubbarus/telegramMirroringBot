@@ -27,6 +27,11 @@ bot:
   posting-period: ${BOT_POST_PERIOD}
   posts-delay-hours: ${BOT_POSTS_DELAY_HOURS}
 
+heroku:
+  lifecheck-url: ${HEROKU_LIFECHECK_URL}
+  lifecheck-period: ${HEROKU_LIFECHECK_PERIOD}
+  lifecheck-delay: ${HEROKU_LIFECHECK_DELAY}
+
 vk:
   app-id: 8030150
   redirect-uri: ${REDIRECT_URL}

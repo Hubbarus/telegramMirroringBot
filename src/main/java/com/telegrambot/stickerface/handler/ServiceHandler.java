@@ -1,6 +1,7 @@
 package com.telegrambot.stickerface.handler;
 
 import com.telegrambot.stickerface.config.BotConfig;
+import com.telegrambot.stickerface.config.HerokuConfig;
 import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.listener.Bot;
 import com.telegrambot.stickerface.service.MirroringUrlService;
@@ -14,8 +15,8 @@ import java.util.List;
 
 @Slf4j
 public class ServiceHandler extends AbstractHandler implements BotHandler {
-    ServiceHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
-        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+    ServiceHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard, HerokuConfig herokuConfig) {
+        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, herokuConfig);
     }
 
     @Override

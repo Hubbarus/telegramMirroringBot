@@ -1,6 +1,7 @@
 package com.telegrambot.stickerface.handler;
 
 import com.telegrambot.stickerface.config.BotConfig;
+import com.telegrambot.stickerface.config.HerokuConfig;
 import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.dto.CommandEnum;
 import com.telegrambot.stickerface.listener.Bot;
@@ -29,15 +30,17 @@ public class AbstractHandler implements BotHandler {
     protected final Bot bot;
     protected final BotConfig botConfig;
     protected final ReplyKeyboardMarkup keyboard;
+    protected final HerokuConfig herokuConfig;
 
     public AbstractHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient,
-                           Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
+                           Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard, HerokuConfig herokuConfig) {
         this.vkClientConfig = vkClientConfig;
         this.urlService = urlService;
         this.vkApiClient = vkApiClient;
         this.bot = bot;
         this.botConfig = botConfig;
         this.keyboard = keyboard;
+        this.herokuConfig = herokuConfig;
     }
 
     public List<Message> handle(long chatId, Message message) throws Exception {
@@ -57,27 +60,27 @@ public class AbstractHandler implements BotHandler {
     public BotHandler getHandler(CommandEnum command) {
         switch (command) {
             case START:
-                return new StartCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new StartCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, herokuConfig);
             case LOGIN:
-                return new LoginCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new LoginCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, herokuConfig);
             case REGISTER:
-                return new RegisterCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new RegisterCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, herokuConfig);
             case START_POLL:
-                return new PollCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new PollCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, herokuConfig);
             case HELP:
-                return new HelpCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new HelpCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, herokuConfig);
             case INFO:
-                return new InfoCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new InfoCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, herokuConfig);
             case STATUS:
-                return new StatusCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new StatusCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, herokuConfig);
             case STOP:
-                return new StopCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new StopCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, herokuConfig);
             case SERVICE:
-                return new ServiceHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new ServiceHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, herokuConfig);
             case NOT_A_COMMAND:
-                return new NotACommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new NotACommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, herokuConfig);
             case DELETE:
-                return new DeleteSubscriptionHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new DeleteSubscriptionHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, herokuConfig);
             default:
                 return this;
         }

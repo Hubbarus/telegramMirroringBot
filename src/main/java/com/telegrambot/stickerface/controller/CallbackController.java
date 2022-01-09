@@ -48,4 +48,12 @@ public class CallbackController {
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @PostMapping("/heathCheck")
+    public ResponseEntity<String> healthCheck(@RequestBody String request) {
+        log.info("In health check...");
+        return new ResponseEntity<>("Health check passed!", HttpStatus.OK);
+    }
+
+    //TODO get method for logs
 }

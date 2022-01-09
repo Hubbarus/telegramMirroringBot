@@ -1,6 +1,7 @@
 package com.telegrambot.stickerface.listener;
 
 import com.telegrambot.stickerface.config.BotConfig;
+import com.telegrambot.stickerface.config.HerokuConfig;
 import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.dto.CommandEnum;
 import com.telegrambot.stickerface.handler.AbstractHandler;
@@ -37,6 +38,8 @@ public class Bot extends TelegramLongPollingBot {
     protected VkApiClient vkApiClient;
     @Autowired
     protected ReplyKeyboardMarkup keyboard;
+    @Autowired
+    protected HerokuConfig herokuConfig;
 
     private boolean isRegisterCommandCalled;
     private boolean isDeleteCommandCalled;
@@ -64,7 +67,7 @@ public class Bot extends TelegramLongPollingBot {
 
             log.info("Command: " + command);
 
-            BotHandler handler = new AbstractHandler(vkClientConfig, urlService, vkApiClient, this, botConfig, keyboard)
+            BotHandler handler = new AbstractHandler(vkClientConfig, urlService, vkApiClient, this, botConfig, keyboard, herokuConfig)
                     .getHandler(command);
             log.info("Handler chosen: " + handler.getClass());
 

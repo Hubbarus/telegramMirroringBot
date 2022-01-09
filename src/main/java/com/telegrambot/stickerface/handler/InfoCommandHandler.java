@@ -1,6 +1,7 @@
 package com.telegrambot.stickerface.handler;
 
 import com.telegrambot.stickerface.config.BotConfig;
+import com.telegrambot.stickerface.config.HerokuConfig;
 import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.listener.Bot;
 import com.telegrambot.stickerface.service.MirroringUrlService;
@@ -17,8 +18,8 @@ public class InfoCommandHandler extends AbstractHandler implements BotHandler {
     private static final String INFO_REPLY_MESSAGE = "This bot is mirroring your VK community content to your telegram channel\n" +
             "Creator is @hubbarus. For donation do something";
 
-    InfoCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
-        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+    InfoCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard, HerokuConfig herokuConfig) {
+        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, herokuConfig);
     }
 
     @Override

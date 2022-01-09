@@ -1,6 +1,7 @@
 package com.telegrambot.stickerface.handler;
 
 import com.telegrambot.stickerface.config.BotConfig;
+import com.telegrambot.stickerface.config.HerokuConfig;
 import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.handler.exception.UrlNotValidException;
 import com.telegrambot.stickerface.listener.Bot;
@@ -35,8 +36,8 @@ public class NotACommandHandler extends AbstractHandler implements BotHandler {
             "Or type \"/help\" for see all actions.";
     private static final String DELETION_SUCCESS_REPLY_MESSAGE = "Community %s was successfully deleted! ";
 
-    NotACommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
-        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+    NotACommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard, HerokuConfig herokuConfig) {
+        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, herokuConfig);
     }
 
     @Override
