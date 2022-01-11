@@ -7,6 +7,7 @@ import com.telegrambot.stickerface.handler.AbstractHandler;
 import com.telegrambot.stickerface.handler.BotHandler;
 import com.telegrambot.stickerface.handler.DeleteMessageHandler;
 import com.telegrambot.stickerface.model.BotUser;
+import com.telegrambot.stickerface.service.LogsService;
 import com.telegrambot.stickerface.service.MirroringUrlService;
 import com.vk.api.sdk.client.VkApiClient;
 import lombok.extern.slf4j.Slf4j;
@@ -37,9 +38,12 @@ public class Bot extends TelegramLongPollingBot {
     protected VkApiClient vkApiClient;
     @Autowired
     protected ReplyKeyboardMarkup keyboard;
+    @Autowired
+    protected LogsService logsService;
 
     private boolean isRegisterCommandCalled;
     private boolean isDeleteCommandCalled;
+    private boolean isLoggerCommandCalled;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -64,7 +68,7 @@ public class Bot extends TelegramLongPollingBot {
 
             log.info("Command: " + command);
 
-            BotHandler handler = new AbstractHandler(vkClientConfig, urlService, vkApiClient, this, botConfig, keyboard)
+            BotHandler handler = new AbstractHandler(vkClientConfig, urlService, vkApiClient, this, botConfig, keyboard, logsService)
                     .getHandler(command);
             log.info("Handler chosen: " + handler.getClass());
 
@@ -109,5 +113,13 @@ public class Bot extends TelegramLongPollingBot {
 
     public void setDeleteCommandCalled(boolean deleteCommandCalled) {
         isDeleteCommandCalled = deleteCommandCalled;
+    }
+
+    public boolean isLoggerCommandCalled() {
+        return isLoggerCommandCalled;
+    }
+
+    public void setLoggerCommandCalled(boolean loggerCommandCalled) {
+        isLoggerCommandCalled = loggerCommandCalled;
     }
 }

@@ -4,6 +4,7 @@ import com.telegrambot.stickerface.config.BotConfig;
 import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.listener.Bot;
 import com.telegrambot.stickerface.model.BotUser;
+import com.telegrambot.stickerface.service.LogsService;
 import com.telegrambot.stickerface.service.MirroringUrlService;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.exceptions.ApiException;
@@ -22,8 +23,8 @@ public class RegisterCommandHandler extends AbstractHandler implements BotHandle
     private static final String REGISTER_FAIL_NOT_LOGGED_IN_REPLY_MESSAGE = "User not logged in! Please call /login first";
     private static final String REGISTER_READY_REPLY_MESSAGE = "Please send an url. Or type \"/skip\" to abort URL registration";
 
-    RegisterCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
-        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+    RegisterCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard, LogsService logsService) {
+        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
     }
 
     @Override

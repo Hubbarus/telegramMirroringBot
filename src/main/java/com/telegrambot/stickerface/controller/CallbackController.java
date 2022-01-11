@@ -54,6 +54,4 @@ public class CallbackController {
         log.info("In health check...");
         return new ResponseEntity<>("Health check passed!", HttpStatus.OK);
     }
-
-    //TODO get method for logs
 }

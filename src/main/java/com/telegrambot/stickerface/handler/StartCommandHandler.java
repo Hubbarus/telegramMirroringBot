@@ -3,6 +3,7 @@ package com.telegrambot.stickerface.handler;
 import com.telegrambot.stickerface.config.BotConfig;
 import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.listener.Bot;
+import com.telegrambot.stickerface.service.LogsService;
 import com.telegrambot.stickerface.service.MirroringUrlService;
 import com.telegrambot.stickerface.util.MenuUtil;
 import com.vk.api.sdk.client.VkApiClient;
@@ -19,8 +20,8 @@ public class StartCommandHandler extends AbstractHandler implements BotHandler {
 
     private static final String START_REPLY_MESSAGE = "Hello, %s! So let's start! Choose action from menu";
 
-    StartCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
-        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+    StartCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard, LogsService logsService) {
+        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
     }
 
     @Override

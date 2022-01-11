@@ -14,6 +14,7 @@ public enum CommandEnum {
     LOGIN("/login"),
     DELETE("/delete"),
     SERVICE("/service"),
+    LOGS("/logs"),
     NOT_A_COMMAND("default");
 
     final String value;

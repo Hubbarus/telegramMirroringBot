@@ -6,6 +6,7 @@ import com.telegrambot.stickerface.handler.exception.UrlNotValidException;
 import com.telegrambot.stickerface.listener.Bot;
 import com.telegrambot.stickerface.model.BotUser;
 import com.telegrambot.stickerface.model.VkCommunity;
+import com.telegrambot.stickerface.service.LogsService;
 import com.telegrambot.stickerface.service.MirroringUrlService;
 import com.telegrambot.stickerface.util.MenuUtil;
 import com.vk.api.sdk.client.VkApiClient;
@@ -15,6 +16,7 @@ import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.groups.responses.GetByIdObjectLegacyResponse;
 import com.vk.api.sdk.objects.groups.responses.GetResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
@@ -35,8 +37,8 @@ public class NotACommandHandler extends AbstractHandler implements BotHandler {
             "Or type \"/help\" for see all actions.";
     private static final String DELETION_SUCCESS_REPLY_MESSAGE = "Community %s was successfully deleted! ";
 
-    NotACommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
-        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+    NotACommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard, LogsService logsService) {
+        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
     }
 
     @Override
@@ -72,6 +74,13 @@ public class NotACommandHandler extends AbstractHandler implements BotHandler {
             urlService.saveBotUser(user);
             bot.setDeleteCommandCalled(false);
             return Collections.singletonList(bot.execute(getDefaultMessage(chatId, DELETION_SUCCESS_REPLY_MESSAGE, input, null)));
+        } else if (bot.isLoggerCommandCalled()) {
+            bot.setLoggerCommandCalled(false);
+            int hours = Integer.parseInt(message.getText());
+
+            SendDocument sendDocument = logsService.getLogs(hours, String.valueOf(chatId));
+
+            return Collections.singletonList(bot.execute(sendDocument));
         } else {
             deleteOwnMessage(chatId, message);
             return Collections.singletonList(bot.execute(getDefaultMessage(chatId, DEFAULT_REPLY_MESSAGE, "", null)));

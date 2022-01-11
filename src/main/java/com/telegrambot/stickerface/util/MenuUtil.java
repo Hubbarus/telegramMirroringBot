@@ -17,7 +17,8 @@ public class MenuUtil {
         List<KeyboardRow> keyboardRows = new ArrayList<>();
         for (int i = 0; i < CommandEnum.values().length; i += 3) {
             if (CommandEnum.values()[i].equals(CommandEnum.NOT_A_COMMAND)
-                    || CommandEnum.values()[i].equals(CommandEnum.SERVICE)) {
+                    || CommandEnum.values()[i].equals(CommandEnum.SERVICE)
+                    || CommandEnum.values()[i].equals(CommandEnum.LOGS)) {
                 continue;
             }
 

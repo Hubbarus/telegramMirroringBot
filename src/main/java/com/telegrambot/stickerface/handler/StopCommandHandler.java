@@ -4,6 +4,7 @@ import com.telegrambot.stickerface.config.BotConfig;
 import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.listener.Bot;
 import com.telegrambot.stickerface.model.BotUser;
+import com.telegrambot.stickerface.service.LogsService;
 import com.telegrambot.stickerface.service.MirroringUrlService;
 import com.vk.api.sdk.client.VkApiClient;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -18,8 +19,8 @@ public class StopCommandHandler extends AbstractHandler implements BotHandler {
     private static final String STOP_SUCCESS_REPLY_MESSAGE = "Bot have stopped to polling messages";
     private static final String STOP_FAIL_REPLY_MESSAGE = "Bot doing nothing right now";
 
-    StopCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
-        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+    StopCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard, LogsService logsService) {
+        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
     }
 
     @Override

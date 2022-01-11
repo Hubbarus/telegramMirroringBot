@@ -6,6 +6,7 @@ import com.telegrambot.stickerface.listener.Bot;
 import com.telegrambot.stickerface.model.BotUser;
 import com.telegrambot.stickerface.model.VkCommunity;
 import com.telegrambot.stickerface.service.CheckRunnableService;
+import com.telegrambot.stickerface.service.LogsService;
 import com.telegrambot.stickerface.service.MirroringUrlService;
 import com.telegrambot.stickerface.service.PollingService;
 import com.telegrambot.stickerface.service.PostingService;
@@ -32,8 +33,8 @@ public class PollCommandHandler extends AbstractHandler implements BotHandler {
     private ScheduledThreadPoolExecutor executor;
 
     PollCommandHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient,
-                       Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
-        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                       Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard, LogsService logsService) {
+        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
     }
 
     @Override

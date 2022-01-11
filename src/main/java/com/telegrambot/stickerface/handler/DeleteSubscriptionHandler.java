@@ -4,6 +4,7 @@ import com.telegrambot.stickerface.config.BotConfig;
 import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.listener.Bot;
 import com.telegrambot.stickerface.model.BotUser;
+import com.telegrambot.stickerface.service.LogsService;
 import com.telegrambot.stickerface.service.MirroringUrlService;
 import com.telegrambot.stickerface.util.MenuUtil;
 import com.vk.api.sdk.client.VkApiClient;
@@ -23,8 +24,8 @@ public class DeleteSubscriptionHandler extends AbstractHandler implements BotHan
     private static final String DELETE_SUBSCRIPTION_READY_REPLY_MESSAGE = "Please choose community to unsubscribe...";
     private static final String FAIL_NO_COMMUNITIES_REPLY_MESSAGE = "You are subscribed to no communities!";
 
-    DeleteSubscriptionHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
-        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+    DeleteSubscriptionHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient, Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard, LogsService logsService) {
+        super(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
     }
 
     @Override

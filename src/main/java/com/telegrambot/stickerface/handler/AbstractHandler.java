@@ -4,6 +4,7 @@ import com.telegrambot.stickerface.config.BotConfig;
 import com.telegrambot.stickerface.config.VkClientConfig;
 import com.telegrambot.stickerface.dto.CommandEnum;
 import com.telegrambot.stickerface.listener.Bot;
+import com.telegrambot.stickerface.service.LogsService;
 import com.telegrambot.stickerface.service.MirroringUrlService;
 import com.vk.api.sdk.client.VkApiClient;
 import lombok.Getter;
@@ -29,15 +30,17 @@ public class AbstractHandler implements BotHandler {
     protected final Bot bot;
     protected final BotConfig botConfig;
     protected final ReplyKeyboardMarkup keyboard;
+    protected final LogsService logsService;
 
     public AbstractHandler(VkClientConfig vkClientConfig, MirroringUrlService urlService, VkApiClient vkApiClient,
-                           Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard) {
+                           Bot bot, BotConfig botConfig, ReplyKeyboardMarkup keyboard, LogsService logsService) {
         this.vkClientConfig = vkClientConfig;
         this.urlService = urlService;
         this.vkApiClient = vkApiClient;
         this.bot = bot;
         this.botConfig = botConfig;
         this.keyboard = keyboard;
+        this.logsService = logsService;
     }
 
     public List<Message> handle(long chatId, Message message) throws Exception {
@@ -57,27 +60,29 @@ public class AbstractHandler implements BotHandler {
     public BotHandler getHandler(CommandEnum command) {
         switch (command) {
             case START:
-                return new StartCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new StartCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
             case LOGIN:
-                return new LoginCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new LoginCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
             case REGISTER:
-                return new RegisterCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new RegisterCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
             case START_POLL:
-                return new PollCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new PollCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
             case HELP:
-                return new HelpCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new HelpCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
             case INFO:
-                return new InfoCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new InfoCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
             case STATUS:
-                return new StatusCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new StatusCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
             case STOP:
-                return new StopCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new StopCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
             case SERVICE:
-                return new ServiceHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new ServiceHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
             case NOT_A_COMMAND:
-                return new NotACommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new NotACommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
             case DELETE:
-                return new DeleteSubscriptionHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard);
+                return new DeleteSubscriptionHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
+            case LOGS:
+                return new LogsCommandHandler(vkClientConfig, urlService, vkApiClient, bot, botConfig, keyboard, logsService);
             default:
                 return this;
         }
