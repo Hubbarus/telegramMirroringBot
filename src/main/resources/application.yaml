@@ -43,8 +43,8 @@ logging:
     name: logs/StickerFace.log
   logback:
     rollingpolicy:
-      max-file-size: 10KB
-      file-name-pattern: logs/StickerFace-%d{yyyy-MM-dd-HH-mm}.%i.log
+      max-file-size: 100KB
+      file-name-pattern: logs/StickerFace-%d{yyyy-MM-dd-HH:mm}.%i.log
   pattern:
     console: "[%d{yyyy-MM-dd HH:mm:ss}] [ %-5level] ${PID:- } [%thread] %logger{15} - %msg%n"
-    file: "[%d{yyyy-MM-dd HH:mm:ss}] [ %-5level] ${PID:- } [%thread] %logger{15} - %msg%n"
+    file: "[%d{yyyy-MM-dd HH:mm:ss}] [ %-5level] [%thread] %logger{15} - %msg%n"
